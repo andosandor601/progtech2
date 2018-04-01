@@ -6,17 +6,15 @@
 package progtech2.frontend.windows;
 
 import java.awt.FlowLayout;
-import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import progtech2.backend.enums.OrderStatus;
+import progtech2.frontend.components.factory.SwingComponentFactory;
 
 /**
  *
@@ -36,26 +34,14 @@ public class OrderStatusWindow extends JFrame {
     }
 
     private void initScreen() {
-        setTitle("Új rendelés");
-        setLayout(new FlowLayout());
-        statusComboBox = generateComboBox("Státusz kiválasztása");
-        modifyStatusOfSelectedOrderButton = generateButton("Kijelölt rendelés státuszának megváltoztatása");
-        modifyStatusOfSelectedOrderButton.addActionListener(this::modifyStatus);
         setTitle("Rendelés státuszának megváltoztatása");
-    }
-
-    private JComboBox generateComboBox(String text) {
-        JComboBox comboBox = new JComboBox(OrderStatus.values());
-        JLabel label = new JLabel(text);
-        add(label);
-        add(comboBox);
-        return comboBox;
-    }
-
-    private JButton generateButton(String text) {
-        JButton button = new JButton(text);
-        add(button);
-        return button;
+        setLayout(new FlowLayout());
+        JPanel panel = new JPanel(new FlowLayout());
+        
+        statusComboBox = SwingComponentFactory.generateComboBox(panel, "Státusz kiválasztása", OrderStatus.values());
+        
+        modifyStatusOfSelectedOrderButton = SwingComponentFactory.generateButton(panel, "Kijelölt rendelés státuszának megváltoztatása");
+        modifyStatusOfSelectedOrderButton.addActionListener(this::modifyStatus);
     }
 
     private void modifyStatus(ActionEvent event) {

@@ -7,9 +7,6 @@ package progtech2.frontend;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import progtech2.backend.entities.Order;
 import progtech2.backend.entities.OrderLine;
@@ -18,6 +15,7 @@ import progtech2.backend.entities.Retailer;
 import progtech2.backend.enums.OrderStatus;
 import progtech2.backend.service.Service;
 import progtech2.backend.service.exceptions.ServiceException;
+import progtech2.frontend.validator.Validator;
 import progtech2.frontend.windows.DashboardWindow;
 import progtech2.frontend.windows.OrderLineWindow;
 import progtech2.frontend.windows.OrderStatusWindow;
@@ -58,28 +56,28 @@ public final class GuiManager {
     }
 
     public static List<OrderLine> listOrderLines(String orderId) {
-        if (validateLong(orderId)) {
+        if (Validator.validateLong(orderId, screen)) {
             return service.listOrderLines(Long.parseLong(orderId));
         }
         return null;
     }
 
     public static void addNewProduct(String name, String price, String stock) {
-        if (validateProduct(name, price, stock)) {
+        if (Validator.validateProduct(name, price, stock, screen)) {
             service.addProduct(name, new BigDecimal(price), Integer.parseInt(stock));
         }
         screen.doListProducts();
     }
 
     public static void addNewRetailer(String name, String address, String creditLine, String phone) {
-        if (validateRetailer(name, address, creditLine, phone)) {
+        if (Validator.validateRetailer(name, address, creditLine, phone, screen)) {
             service.addRetailer(name, address, new BigDecimal(creditLine), phone);
         }
         screen.doListRetailers();
     }
 
     public static void addNewOrder(List<OrderLine> orderLines, Object selectedItem) {
-        if (validateOrder((String) selectedItem, orderLines)) {
+        if (Validator.validateOrder((String) selectedItem, orderLines, screen)) {
             try {
                 service.addOrder((String) selectedItem, orderLines);
             } catch (ServiceException ex) {
@@ -90,7 +88,7 @@ public final class GuiManager {
     }
 
     public static void deleteOrder(String orderId) {
-        if (validateLong(orderId)) {
+        if (Validator.validateLong(orderId, screen)) {
             service.deleteOrder(Long.parseLong(orderId));
         }
     }
@@ -114,7 +112,7 @@ public final class GuiManager {
     }
 
     public static void modifyOrder(String orderId, Object selectedItem) {
-        if (validateLong(orderId)) {
+        if (Validator.validateLong(orderId, screen)) {
             service.modifyOrderStatus(Long.parseLong(orderId), (OrderStatus) selectedItem);
         }
         screen.doListOrders();
@@ -138,50 +136,6 @@ public final class GuiManager {
         screen.addContent(service.listOrdersByRetailer(retailerName));
     }
 
-    private static boolean validateProduct(String name, String price, String stock) {
-        if (name.isEmpty() || price.isEmpty() || stock.isEmpty()) {
-            JOptionPane.showMessageDialog(screen, "hiányzó paraméter");
-            return false;
-        }
-        if (!price.matches(BIGDECIMAL_REGEXP)) {
-            JOptionPane.showMessageDialog(screen, "Hibásan megadott ár");
-            return false;
-        }
-        if (stock.matches(INTEGER_REGEXP)) {
-            JOptionPane.showMessageDialog(screen, "Hibásan megadott mennyiség");
-            return false;
-        }
-        return true;
-    }
-
-    private static boolean validateRetailer(String name, String address, String creditLine, String phone) {
-        if (name.isEmpty() || address.isEmpty() || creditLine.isEmpty() || phone.isEmpty()) {
-            JOptionPane.showMessageDialog(screen, "hiányzó paraméter");
-            return false;
-        }
-        if (!creditLine.matches(BIGDECIMAL_REGEXP)) {
-            JOptionPane.showMessageDialog(screen, "Hibásan megadott hitelkeret");
-            return false;
-        }
-        return true;
-    }
-
-    private static <E> boolean validateOrder(String text, List<E> list) {
-        if (text.isEmpty() || list.isEmpty()) {
-            JOptionPane.showMessageDialog(screen, "hiányzó paraméter");
-            return false;
-        }
-        return true;
-    }
-
-    private static boolean validateLong(String orderId) {
-        if (!orderId.matches(orderId)) {
-            JOptionPane.showMessageDialog(screen, "hibás szám érték");
-            return false;
-        }
-        return true;
-    }
-
     public static void showOrderWindow() {
         OrderWindow actionWindow = new OrderWindow();
         actionWindow.pack();
@@ -195,7 +149,7 @@ public final class GuiManager {
     }
 
     public static void showOrderLineWindow(Object orderLineId, Object orderId) {
-        if (validateLong((String) orderId) && validateLong((String) orderLineId)) {
+        if (Validator.validateLong((String) orderId, screen) && Validator.validateLong((String) orderLineId, screen)) {
             OrderLineWindow actionWindow = new OrderLineWindow(screen, Long.parseLong((String) orderLineId), Long.parseLong((String) orderId));
             actionWindow.pack();
             actionWindow.setVisible(true);

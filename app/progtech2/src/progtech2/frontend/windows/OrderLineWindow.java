@@ -10,6 +10,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
+import progtech2.frontend.components.factory.SwingComponentFactory;
 
 /**
  *
@@ -31,15 +33,13 @@ public class OrderLineWindow extends JFrame {
     private void initWindow() {
         setTitle(orderLineId + " azonosítójú rendeléssor törlése");
         setLayout(new FlowLayout());
-        deleteOrderLineButton = generateButton("Kijelölt rendeléssor törlése");
+        
+        JPanel panel = new JPanel(new FlowLayout());
+        
+        deleteOrderLineButton = SwingComponentFactory.generateButton(panel, "Kijelölt rendeléssor törlése");
         deleteOrderLineButton.addActionListener(this::deleteOrderLine);
-        add(deleteOrderLineButton);
-    }
-
-    private JButton generateButton(String text) {
-        JButton button = new JButton(text);
-        add(button);
-        return button;
+        
+        add(panel);
     }
     
     private void deleteOrderLine(ActionEvent event){

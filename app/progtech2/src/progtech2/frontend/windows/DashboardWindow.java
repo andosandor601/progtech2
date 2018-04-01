@@ -5,14 +5,12 @@
  */
 package progtech2.frontend.windows;
 
-import java.awt.CardLayout;
 import java.awt.FlowLayout;
 import java.awt.HeadlessException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import jdk.nashorn.internal.codegen.CompilerConstants;
 import progtech2.backend.entities.Order;
 import progtech2.backend.entities.OrderLine;
 import progtech2.backend.entities.Product;
