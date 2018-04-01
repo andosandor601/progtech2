@@ -5,37 +5,59 @@
  */
 package progtech2.backend.dao;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author <Andó Sándor Zsolt>
  */
-public class GenericDao<E, K> implements IGenericDao<E, K> {
+public abstract class GenericDao<E, K> implements IGenericDao<E, K> {
 
-    @Override
-    public void delete(K key) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    protected final String tableName;
+    protected final String keyName;
+    protected Connection con;
+
+    protected GenericDao(Connection con, String tableName, String keyName) {
+        this.con = con;
+        this.tableName = tableName;
+        this.keyName = keyName;
     }
 
     @Override
-    public List<E> findAll(Class<E> entityClass) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    public abstract void delete(K key);
 
     @Override
-    public E findById(K key) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    public abstract List<E> findAll();
 
     @Override
-    public void save(E entity) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    public abstract E findById(K key);
 
     @Override
-    public void update(E entity) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public abstract E save(E entity);
+
+    @Override
+    public abstract void update(E entity);
+
+    private void close(PreparedStatement statement) {
+        try {
+            if (!(statement == null || statement.isClosed())) {
+                statement.close();
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(RetailerDao.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    protected void setCon(Connection con) {
+        this.con = con;
     }
 
 }

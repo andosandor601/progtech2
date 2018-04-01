@@ -6,6 +6,7 @@
 package progtech2.backend.dao;
 
 import java.util.List;
+import progtech2.backend.entities.Order;
 import progtech2.backend.entities.OrderLine;
 
 /**
@@ -22,5 +23,14 @@ public interface IOrderDao {
      * @return
      */
     List<OrderLine> findOrderLinesByOrderId(long key);
+    
+    
+    /**
+     * Az összes olyan rendelés kilistázása, amit még nem kezdtek el
+     * kiszállítani
+     *
+     * @return
+     */
+    List<Order> findOrdersWithUnderDeliveryOrWaitingForDeliveryStatus();
 
 }

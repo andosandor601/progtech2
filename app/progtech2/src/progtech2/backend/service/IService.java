@@ -12,6 +12,7 @@ import progtech2.backend.entities.Order;
 import progtech2.backend.entities.Product;
 import progtech2.backend.entities.Retailer;
 import progtech2.backend.enums.OrderStatus;
+import progtech2.backend.service.exceptions.ServiceException;
 
 /**
  * Az alkalmazás szerviz interfésze
@@ -25,8 +26,9 @@ public interface IService {
      *
      * @param retailerName
      * @param orderLines
+     * @throws ServiceException
      */
-    void addOrder(String retailerName, List<OrderLine> orderLines);
+    void addOrder(String retailerName, List<OrderLine> orderLines) throws ServiceException;
 
     /**
      * Új rendeléssor elmentése
@@ -47,12 +49,22 @@ public interface IService {
     void addProduct(String productName, BigDecimal price, int stock);
 
     /**
+     * Új kereskedő felvétele
+     *
+     * @param retailerName
+     * @param address
+     * @param creditLine
+     * @param phone
+     */
+    void addRetailer(String retailerName, String address, BigDecimal creditLine, String phone);
+
+    /**
      * A megadott azonosítójú rendelés törlése a megadott kiskereskedőtől
      *
      * @param retailerName
      * @param orderId
      */
-    void deleteOrder(String retailerName, long orderId);
+    void deleteOrder(long orderId);
 
     /**
      * A megadott azonosítójú rendeléssor törlése, a megadott azonosítójú
@@ -61,14 +73,15 @@ public interface IService {
      * @param orderId
      * @param orderLineId
      */
-    void deleteOrderLine(long orderId, long orderLineId);
+    void deleteOrderLine(long orderLineId);
 
     /**
      * A megadott azonosítójú termék törlése
      *
      * @param productName
+     * @throws ServiceException
      */
-    void deleteProduct(String productName);
+    void deleteProduct(String productName) throws ServiceException;
 
     /**
      * Azon termékek listázáse, amik még nincsenek kiszállítás alatt, vagy nem
@@ -114,6 +127,13 @@ public interface IService {
      * @return
      */
     List<Retailer> listRetailers();
+    
+    /**
+     * Termék keresése id alapján
+     * @param productName
+     * @return 
+     */
+    Product findProduct(String productName);
 
     /**
      * A megadott rendelés státuszának módosítása
@@ -129,14 +149,16 @@ public interface IService {
      * @param productName
      * @param newPrice
      */
-    void modifyProductPrice(String productName, BigDecimal newPrice);
+    void modifyProduct(String productName, BigDecimal newPrice, int newQuantity);
 
     /**
-     * A megadott termék, raktáron tárolt mennyiségének a módosítása
+     * A megadott kiskereskedő módosítása a paraméterben megadott adatokkal
      *
-     * @param productName
-     * @param newQuantity
+     * @param name
+     * @param address
+     * @param creditLine
+     * @param phone
      */
-    void modifyProductQuantity(String productName, int newQuantity);
+    void modifyRetailer(String name, String address, BigDecimal creditLine, String phone);
 
 }

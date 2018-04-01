@@ -27,7 +27,7 @@ public interface IGenericDao<E, K> {
      * @param entityClass
      * @return
      */
-    List<E> findAll(Class<E> entityClass);
+    List<E> findAll();
 
     /**
      * Egy entitás megkeresése kulcs alapján
@@ -42,7 +42,7 @@ public interface IGenericDao<E, K> {
      *
      * @param entity
      */
-    void save(E entity);
+    E save(E entity);
 
     /**
      * Egy entitás módosítása

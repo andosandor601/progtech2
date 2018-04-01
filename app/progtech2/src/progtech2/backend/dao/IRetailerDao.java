@@ -23,12 +23,4 @@ public interface IRetailerDao {
      */
     List<Order> findOrdersByRetailerId(String key);
 
-    /**
-     * Az összes olyan rendelés kilistázása, amit még nem kezdtek el
-     * kiszállítani
-     *
-     * @return
-     */
-    List<Order> findOrdersWithUnderDeliveryOrWaitingForDeliveryStatus();
-
 }

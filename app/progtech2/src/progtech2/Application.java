@@ -5,9 +5,12 @@
  */
 package progtech2;
 
+import javax.swing.JFrame;
+import progtech2.frontend.GuiManager;
+
 /**
  *
- * @author Dell
+ * @author Andó Sándor Zsolt
  */
 public class Application {
 
@@ -15,7 +18,7 @@ public class Application {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        // TODO code application logic here
+        GuiManager.start();
     }
     
 }

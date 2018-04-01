@@ -3,14 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package progtech2.frontend.components;
-
-import javax.swing.JTable;
+package progtech2.frontend.enums;
 
 /**
  *
  * @author <Andó Sándor Zsolt>
  */
-public class OrderLineTable extends JTable{
-    
+public enum Action {
+    ORDER, PRODUCT, RETAILER
 }

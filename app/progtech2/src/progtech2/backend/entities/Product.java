@@ -40,5 +40,10 @@ public class Product {
     public void setStock(int stock) {
         this.stock = stock;
     }
+
+    public Object[] toArray() {
+        String[] array = {productName, price.toString(), stock+""};
+        return array;
+    }
     
 }

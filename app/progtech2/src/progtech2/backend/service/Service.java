@@ -14,6 +14,7 @@ import progtech2.backend.entities.OrderLine;
 import progtech2.backend.entities.Product;
 import progtech2.backend.entities.Retailer;
 import progtech2.backend.enums.OrderStatus;
+import progtech2.backend.service.exceptions.ServiceException;
 
 /**
  *
@@ -21,19 +22,37 @@ import progtech2.backend.enums.OrderStatus;
  */
 public class Service implements IService {
 
+    private DaoManager dm = new DaoManager();
+
     @Override
-    public void addOrder(String retailerName, List<OrderLine> orderLines) {
+    public void addOrder(String retailerName, List<OrderLine> orderLines) throws ServiceException {
         Order order = new Order();
-        Retailer retailer = DaoManager.findRetailer(retailerName);
-        //TODO: ellenőrízni, hogy a leadott rendelés nem-e lépi túl, a megadott hitelkeretet
-        order.setOrderlines(orderLines);
+        Retailer retailer = dm.findRetailer(retailerName);
         order.setOrderDate(Calendar.getInstance().getTime());
         order.setStatus(OrderStatus.WAITING_FOR_DELIVERY);
         order.setOrderPrice(sumOrderLines(orderLines));
+        order.setRetailerName(retailer.getName());
 
-        order = DaoManager.saveOrder(order);
-        DaoManager.addNewOrderToRetailer(retailer, order);
+        if (order.getOrderPrice().compareTo(retailer.getCreditLine()) < 1 && areValidOrderLines(orderLines)) {
+            order = dm.saveOrder(order, orderLines);
+            for (OrderLine orderLine : orderLines) {
+                Product product = dm.findProduct(orderLine.getProduct());
+                modifyProductQuantity(product.getProductName(), product.getStock() - orderLine.getQuantity());
+            }
+        } else {
+            throw new ServiceException("Túl magas a rendelés értéke, vagy az egyik termékből nincs elég a raktáron");
+        }
 
+    }
+
+    private boolean areValidOrderLines(List<OrderLine> orderLines) {
+        for (OrderLine orderLine : orderLines) {
+            Product product = dm.findProduct(orderLine.getProduct());
+            if (product.getStock() < orderLine.getQuantity()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private BigDecimal sumOrderLines(List<OrderLine> orderLines) {
@@ -47,15 +66,15 @@ public class Service implements IService {
     @Override
     public OrderLine addOrderLine(String productName, int quantity) {
         OrderLine orderLine = new OrderLine();
-        Product product = DaoManager.findProduct(productName);
+        Product product = dm.findProduct(productName);
 
-        orderLine.setProduct(product);
+        orderLine.setProduct(productName);
         orderLine.setQuantity(quantity);
         orderLine.setPrice(product.getPrice().multiply(new BigDecimal(quantity)));
 
         modifyProductQuantity(product.getProductName(), product.getStock() - quantity);
 
-        orderLine = DaoManager.saveOrderLine(orderLine);
+        orderLine = dm.saveOrderLine(orderLine);
 
         return orderLine;
     }
@@ -68,102 +87,127 @@ public class Service implements IService {
         product.setPrice(price);
         product.setStock(stock);
 
-        DaoManager.saveProduct(product);
+        dm.saveProduct(product);
     }
 
     @Override
-    public void deleteOrder(String retailerName, long orderId) {
-        removeOrderFromRetailer(retailerName, orderId);
-        returnAllOrderedProductsToStock(orderId);
+    public void addRetailer(String retailerName, String address, BigDecimal creditLine, String phone) {
+        Retailer retailer = new Retailer();
 
-        DaoManager.deleteOrder(orderId);
+        retailer.setName(retailerName);
+        retailer.setAddress(address);
+        retailer.setCreditLine(creditLine);
+        retailer.setPhone(phone);
+
+        dm.saveRetailer(retailer);
     }
 
-    private void removeOrderFromRetailer(String retailerName, long orderId) {
-        Retailer retailer = DaoManager.findRetailer(retailer);
-        Order order = DaoManager.findOrder(orderId);
-        retailer.getOrders().remove(order);
-        DaoManager.updateOrder(order);
+    @Override
+    public void deleteOrder(long orderId) {
+        List<OrderLine> orderLines = dm.findOrderLinesByOrderId(orderId);
+        orderLines.forEach(orderLine -> {
+            deleteOrderLine(orderLine.getOrderLineId());
+        });
+        dm.deleteOrder(orderId);
     }
 
     private void returnAllOrderedProductsToStock(long orderId) {
-        Order order = DaoManager.findOrder(orderId);
-        order.getOrderlines().forEach(orderLine -> {
-            modifyProductQuantity(orderLine.getProduct().getProductName(), orderLine.getProduct().getStock() + orderLine.getQuantity());
+        List<OrderLine> orderLines = dm.findOrderLinesByOrderId(orderId);
+        orderLines.forEach(orderLine -> {
+            returnOrderedProductToStock(orderLine);
         });
-        //majd cascade-olni az adatbázisban az orderline-okat (delete cascade property beállítása)
     }
 
     @Override
-    public void deleteOrderLine(long orderId, long orderLineId) {
-        removeOrderLineFromOrder(orderId, orderLineId);
-        modifyProductQuantity(productName, 0);
-        DaoManager.deleteOrderLine(orderLineId);
+    public void deleteOrderLine(long orderLineId) {
+        OrderLine orderLine = dm.findOrderLine(orderLineId);
+        long orderId = orderLine.getOrderId();
+        returnOrderedProductToStock(orderLine);
+        dm.deleteOrderLine(orderLineId);
+
+        List<OrderLine> orderLines = listOrderLines(orderId);
+        modifyOrderPrice(orderLine.getOrderId(), sumOrderLines(orderLines));
     }
 
-    private void removeOrderLineFromOrder(long orderId, long orderLineId) {
-        Order order = DaoManager.findOrder(orderId);
-        OrderLine orderLine = DaoManager.findOrderLine(orderLineId);
-        modifyProductQuantity(orderLine.getProduct().getProductName(), orderLine.getProduct().getStock() + orderLine.getQuantity());
-        order.getOrderlines().remove(orderLine);
-        DaoManager.updateOrder(order);
+    private void returnOrderedProductToStock(OrderLine orderLine) {
+        Product product = dm.findProduct(orderLine.getProduct());
+        modifyProductQuantity(product.getProductName(), product.getStock() + orderLine.getQuantity());
     }
 
     @Override
-    public void deleteProduct(String productName) {
-        //Ellenőrízni, hogy van-e a termékre rendelés, különben nem törlünk
-        DaoManager.deleteProduct(productName);
+    public void deleteProduct(String productName) throws ServiceException {
+        dm.deleteProduct(productName);
     }
 
     @Override
     public List<Order> listNotDeliveredOrders() {
-        return DaoManager.listNotDeliveredOrders();
+        return dm.listNotDeliveredOrders();
     }
 
     @Override
     public List<OrderLine> listOrderLines(long orderId) {
-        return DaoManager.listOrderLines(orderId);
+        return dm.listOrderLines(orderId);
     }
 
     @Override
     public List<Order> listOrders() {
-        return DaoManager.listOrders();
+        return dm.listOrders();
     }
 
     @Override
     public List<Order> listOrdersByRetailer(String retailerName) {
-        return DaoManager.listOrdersByRetailer(retailerName);
+        return dm.listOrdersByRetailer(retailerName);
     }
 
     @Override
     public List<Product> listProducts() {
-        return DaoManager.listProducts();
+        return dm.listProducts();
     }
 
     @Override
     public List<Retailer> listRetailers() {
-        return DaoManager.listRetailers();
+        return dm.listRetailers();
+    }
+
+    @Override
+    public Product findProduct(String productName) {
+        return dm.findProduct(productName);
     }
 
     @Override
     public void modifyOrderStatus(long orderId, OrderStatus status) {
-        Order order = DaoManager.findOrder(orderId);
+        Order order = dm.findOrder(orderId);
         order.setStatus(status);
-        DaoManager.updateOrder(order);
+        dm.updateOrder(order);
     }
 
     @Override
-    public void modifyProductPrice(String productName, BigDecimal newPrice) {
-        Product product = DaoManager.findProduct(productName);
+    public void modifyProduct(String productName, BigDecimal newPrice, int newQuantity) {
+        Product product = dm.findProduct(productName);
         product.setPrice(newPrice);
-        DaoManager.updateProduct(product);
+        product.setStock(newQuantity);
+        dm.updateProduct(product);
+    }
+
+    public void modifyProductQuantity(String productName, int newQuantity) {
+        Product product = dm.findProduct(productName);
+        product.setStock(newQuantity);
+        dm.updateProduct(product);
     }
 
     @Override
-    public void modifyProductQuantity(String productName, int newQuantity) {
-        Product product = DaoManager.findProduct(productName);
-        product.setStock(newQuantity);
-        DaoManager.upddateProduct(product);
+    public void modifyRetailer(String name, String address, BigDecimal creditLine, String phone) {
+        Retailer retailer = dm.findRetailer(name);
+        retailer.setAddress(address);
+        retailer.setCreditLine(creditLine);
+        retailer.setPhone(phone);
+        dm.updateRetailer(retailer);
+    }
+
+    private void modifyOrderPrice(long orderId, BigDecimal sumOrderLines) {
+        Order order = dm.findOrder(orderId);
+        order.setOrderPrice(sumOrderLines);
+        dm.updateOrder(order);
     }
 
 }

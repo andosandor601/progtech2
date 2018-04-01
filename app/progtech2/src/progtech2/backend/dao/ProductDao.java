@@ -14,24 +14,22 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import progtech2.backend.entities.Order;
 import progtech2.backend.entities.OrderLine;
-import progtech2.backend.entities.Retailer;
-import progtech2.backend.enums.OrderStatus;
+import progtech2.backend.entities.Product;
 
 /**
  *
  * @author <Andó Sándor Zsolt>
  */
-public class RetailerDao extends GenericDao<Retailer, String> implements IRetailerDao {
+public class ProductDao extends GenericDao<Product, String> {
 
-    public RetailerDao(Connection con) {
-        super(con, "retailer", "retailerName");
+    public ProductDao(Connection con) {
+        super(con, "prodect", "productName");
     }
     
     @Override
     public void delete(String key) {
-        String sql = "DELETE FROM \"USERNAME\".\"retailer\" WHERE pname = ?";
+        String sql = "DELETE FROM \"USERNAME\".\"product\" WHERE productName = ?";
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         try {
@@ -47,17 +45,17 @@ public class RetailerDao extends GenericDao<Retailer, String> implements IRetail
     }
 
     @Override
-    public List<Retailer> findAll() {
-        String sql = "SELECT * FROM \"USERNAME\".\"retailer\"";
+    public List<Product> findAll() {
+        String sql = "SELECT * FROM \"USERNAME\".\"product\"";
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         try {
             statement = con.prepareStatement(sql);
 
             resultSet = statement.executeQuery();
-            List<Retailer> result = new LinkedList<>();
+            List<Product> result = new LinkedList<>();
             while (resultSet.next()) {
-                result.add(setRetailer(resultSet));
+                result.add(setProduct(resultSet));
             }
             return result;
         } catch (SQLException ex) {
@@ -69,8 +67,8 @@ public class RetailerDao extends GenericDao<Retailer, String> implements IRetail
     }
 
     @Override
-    public Retailer findById(String key) {
-        String sql = "SELECT * FROM \"USERNAME\".\"retailer\" WHERE name = ?";
+    public Product findById(String key) {
+        String sql = "SELECT * FROM \"USERNAME\".\"product\" WHERE productName = ?";
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         try {
@@ -78,9 +76,9 @@ public class RetailerDao extends GenericDao<Retailer, String> implements IRetail
             statement.setString(1, key);
 
             resultSet = statement.executeQuery();
-            List<Retailer> result = new LinkedList<>();
+            List<Product> result = new LinkedList<>();
             while (resultSet.next()) {
-                result.add(setRetailer(resultSet));
+                result.add(setProduct(resultSet));
             }
             return result.get(0);
         } catch (SQLException ex) {
@@ -91,27 +89,25 @@ public class RetailerDao extends GenericDao<Retailer, String> implements IRetail
         return null;
     }
 
-    private Retailer setRetailer(ResultSet resultSet) throws SQLException {
-        //address, creditline, name, phone
-        Retailer retailer = new Retailer();
-        retailer.setName(resultSet.getString("name"));
-        retailer.setAddress(resultSet.getString("address"));
-        retailer.setCreditLine(resultSet.getBigDecimal("creditLine"));
-        retailer.setPhone(resultSet.getString("phone"));
-        return retailer;
+    private Product setProduct(ResultSet resultSet) throws SQLException {
+        //price productname stock
+        Product product = new Product();
+        product.setProductName(resultSet.getString("productName"));
+        product.setPrice(resultSet.getBigDecimal("price"));
+        product.setStock(resultSet.getInt("stock"));
+        return product;
     }
 
     @Override
-    public Retailer save(Retailer entity) {
-        String sql = "INSERT INTO \"USERNAME\".\"retailer\" (name, address, creditLine, phone) VALUES (?, ?, ?, ?)";
+    public Product save(Product entity) {
+        String sql = "INSERT INTO \"USERNAME\".\"product\" (productName, price, stock) VALUES (?, ?, ?)";
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         try {
             statement = con.prepareStatement(sql);
-            statement.setString(1, entity.getName());
-            statement.setString(2, entity.getAddress());
-            statement.setBigDecimal(3, entity.getCreditLine());
-            statement.setString(4, entity.getPhone());
+            statement.setString(1, entity.getProductName());
+            statement.setBigDecimal(2, entity.getPrice());
+            statement.setInt(3, entity.getStock());
             statement.executeUpdate();
             return entity;
         } catch (SQLException ex) {
@@ -119,59 +115,26 @@ public class RetailerDao extends GenericDao<Retailer, String> implements IRetail
         } finally {
             close(statement, resultSet);
         }
+
         return null;
     }
 
     @Override
-    public void update(Retailer entity) {
-        String sql = "UPDATE \"USERNAME\".\"retailer\" SET address=?, creditLine=?, phone=? WHERE name=?";
+    public void update(Product entity) {
+        String sql = "UPDATE \"USERNAME\".\"product\" SET price=?, stock=? WHERE productName=?";
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         try {
             statement = con.prepareStatement(sql);
-            statement.setString(1, entity.getAddress());
-            statement.setBigDecimal(2, entity.getCreditLine());
-            statement.setString(3, entity.getPhone());
-            statement.setString(4, entity.getName());
+            statement.setBigDecimal(1, entity.getPrice());
+            statement.setInt(2, entity.getStock());
+            statement.setString(3, entity.getProductName());
             statement.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(OrderDao.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             close(statement, resultSet);
         }
-    }
-
-    @Override
-    public List<Order> findOrdersByRetailerId(String key) {
-        String sql = "SELECT * FROM \"USERNAME\".\"order\" WHERE retailerName = ?";
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = con.prepareStatement(sql);
-            statement.setString(1, key);
-
-            resultSet = statement.executeQuery();
-            List<Order> result = new LinkedList<>();
-            while (resultSet.next()) {
-                result.add(setOrder(resultSet));
-            }
-            return result;
-        } catch (SQLException ex) {
-            Logger.getLogger(OrderDao.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            close(statement, resultSet);
-        }
-        return null;
-    }
-
-    private Order setOrder(ResultSet resultSet) throws SQLException {
-        Order order = new Order();
-        order.setOrderId(resultSet.getLong("orderId"));
-        order.setOrderDate(resultSet.getDate("orderDate"));
-        order.setOrderPrice(resultSet.getBigDecimal("orderPrice"));
-        order.setStatus(OrderStatus.valueOf(resultSet.getString("status")));
-        order.setRetailerName(resultSet.getString("retailerName"));
-        return order;
     }
 
     private void close(PreparedStatement statement, ResultSet resultSet) {

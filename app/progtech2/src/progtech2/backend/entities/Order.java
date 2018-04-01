@@ -18,9 +18,9 @@ public class Order {
     
     private Date orderDate;
     private long orderId;
-    private List<OrderLine> orderlines;
     private BigDecimal orderPrice;
     private OrderStatus status;
+    private String retailerName;
 
     public Date getOrderDate() {
         return orderDate;
@@ -34,12 +34,8 @@ public class Order {
         return orderId;
     }
 
-    public List<OrderLine> getOrderlines() {
-        return orderlines;
-    }
-
-    public void setOrderlines(List<OrderLine> orderlines) {
-        this.orderlines = orderlines;
+    public void setOrderId(long orderId) {
+        this.orderId = orderId;
     }
 
     public BigDecimal getOrderPrice() {
@@ -56,6 +52,24 @@ public class Order {
 
     public void setStatus(OrderStatus status) {
         this.status = status;
+    }
+
+    public String getRetailerName() {
+        return retailerName;
+    }
+
+    public void setRetailerName(String retailerName) {
+        this.retailerName = retailerName;
+    }
+    
+    public Object[] toArray() {
+        String[] array = {orderId+"", retailerName, orderDate.toString(), orderPrice.toString(), status.name()};
+        return array;
+    }
+
+    @Override
+    public String toString() {
+        return "Order{" + "orderDate=" + orderDate + ", orderId=" + orderId + ", orderPrice=" + orderPrice + ", status=" + status + ", retailerName=" + retailerName + '}';
     }
     
 }

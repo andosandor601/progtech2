@@ -17,7 +17,6 @@ public class Retailer {
     private String address;
     private BigDecimal creditLine;
     private String name;
-    private List<Order> orders;
     private String phone;
 
     public String getAddress() {
@@ -44,20 +43,17 @@ public class Retailer {
         this.name = name;
     }
 
-    public List<Order> getOrders() {
-        return orders;
-    }
-
-    public void setOrders(List<Order> orders) {
-        this.orders = orders;
-    }
-
     public String getPhone() {
         return phone;
     }
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+    
+    public Object[] toArray() {
+        String[] array = {name, address, creditLine.toString(), phone};
+        return array;
     }
     
 }
