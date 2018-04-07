@@ -42,6 +42,8 @@ public class OrderStatusWindow extends JFrame {
         
         modifyStatusOfSelectedOrderButton = SwingComponentFactory.generateButton(panel, "Kijelölt rendelés státuszának megváltoztatása");
         modifyStatusOfSelectedOrderButton.addActionListener(this::modifyStatus);
+        
+        add(panel);
     }
 
     private void modifyStatus(ActionEvent event) {

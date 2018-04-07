@@ -122,7 +122,10 @@ public class Service implements IService {
     public void deleteOrderLine(long orderLineId) {
         OrderLine orderLine = dm.findOrderLine(orderLineId);
         long orderId = orderLine.getOrderId();
-        returnOrderedProductToStock(orderLine);
+        Order order = dm.findOrder(orderLine.getOrderId());
+        if (!order.getStatus().equals(OrderStatus.READY)) {
+            returnOrderedProductToStock(orderLine);
+        }      
         dm.deleteOrderLine(orderLineId);
 
         List<OrderLine> orderLines = listOrderLines(orderId);
