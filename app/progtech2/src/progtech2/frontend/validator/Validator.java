@@ -9,9 +9,9 @@ import java.math.BigDecimal;
 import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import progtech2.frontend.windows.DashboardWindow;
 
 /**
+ * Validator osztály, az input adatok helyességének vizsgálata
  *
  * @author <Andó Sándor Zsolt>
  */

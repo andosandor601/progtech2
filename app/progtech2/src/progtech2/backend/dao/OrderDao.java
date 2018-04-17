@@ -5,7 +5,6 @@
  */
 package progtech2.backend.dao;
 
-import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -20,7 +19,8 @@ import progtech2.backend.entities.OrderLine;
 import progtech2.backend.enums.OrderStatus;
 
 /**
- *
+ * OrderDao osztály, A rendelésekkel kapcsolatos adatbázis műveletek végrehajtásáért felel.
+ * 
  * @author <Andó Sándor Zsolt>
  */
 public class OrderDao extends GenericDao<Order, Long> implements IOrderDao {
@@ -28,20 +28,32 @@ public class OrderDao extends GenericDao<Order, Long> implements IOrderDao {
     public OrderDao(Connection con) {
         super(con, "order", "orderId");
     }
-    
+
     @Override
     public void delete(Long key) {
+
+        /**
+         * sql lekérdezés
+         *
+         * \"USERNAME\".\"order\" => adatbázis.táblanév,
+         * ? => paraméter
+         */
         String sql = "DELETE FROM \"USERNAME\".\"order\" WHERE orderId = ?";
+        
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         try {
             statement = con.prepareStatement(sql);
+
+            //paraméter beállítása
             statement.setLong(1, key);
 
+            //.executeUpdate() => SQL Data Manipulation Language (DML) (Update, Insert, Delete) típusú lekérdezés végrehajtása.
             statement.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(GenericDao.class.getName()).log(Level.SEVERE, null, ex);
-        }finally{
+        } finally {
+            //statement és resultset lezárása
             close(statement, resultSet);
         }
     }
@@ -54,12 +66,16 @@ public class OrderDao extends GenericDao<Order, Long> implements IOrderDao {
         try {
             statement = con.prepareStatement(sql);
 
+            //.executeQuery => sql leérdezés végrehajtása, egy resultSet objektummal tér vissza
             resultSet = statement.executeQuery();
+            
+            //resultSet feldolgozása
             List<Order> result = new LinkedList<>();
             while (resultSet.next()) {
                 result.add(setOrder(resultSet));
             }
             return result;
+            
         } catch (SQLException ex) {
             Logger.getLogger(OrderDao.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
@@ -91,6 +107,12 @@ public class OrderDao extends GenericDao<Order, Long> implements IOrderDao {
         return null;
     }
 
+    /**
+     * resultSet alapján egy új Order objektum létrehozása
+     * @param resultSet
+     * @return
+     * @throws SQLException 
+     */
     private Order setOrder(ResultSet resultSet) throws SQLException {
         Order order = new Order();
         order.setOrderId(resultSet.getLong("orderId"));
@@ -124,6 +146,13 @@ public class OrderDao extends GenericDao<Order, Long> implements IOrderDao {
         return null;
     }
 
+    /**
+     * resultSet alapján egy új OrderLine objektum létrehozása
+     * 
+     * @param resultSet
+     * @return
+     * @throws SQLException 
+     */
     private OrderLine setOrderLine(ResultSet resultSet) throws SQLException {
         OrderLine orderLine = new OrderLine();
         orderLine.setOrderLineId(resultSet.getLong("orderLineId"));
@@ -140,15 +169,18 @@ public class OrderDao extends GenericDao<Order, Long> implements IOrderDao {
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         try {
-            //date, id, price, status
+            
+            //Statement.RETURN_GENERATED_KEYS => beállítjuk, hogy a generált kulcs visszakérhető legyen
             statement = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            
             statement.setString(1, entity.getRetailerName());
             statement.setDate(2, new java.sql.Date(entity.getOrderDate().getTime()));
             statement.setBigDecimal(3, entity.getOrderPrice());
             statement.setString(4, entity.getStatus().name());
-            
+
             statement.executeUpdate();
 
+            //generált kulcs lekérése
             ResultSet generatedKeys = statement.getGeneratedKeys();
             if (generatedKeys.next()) {
                 entity.setOrderId(generatedKeys.getLong(1));
@@ -170,7 +202,6 @@ public class OrderDao extends GenericDao<Order, Long> implements IOrderDao {
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         try {
-            //date, id, price, status
             statement = con.prepareStatement(sql);
             statement.setBigDecimal(1, entity.getOrderPrice());
             statement.setString(2, entity.getStatus().name());
@@ -189,7 +220,6 @@ public class OrderDao extends GenericDao<Order, Long> implements IOrderDao {
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         try {
-            //date, id, price, status
             statement = con.prepareStatement(sql);
             statement.setString(1, OrderStatus.UNDER_DELIVERY.name());
             statement.setString(2, OrderStatus.WAITING_FOR_DELIVERY.name());
@@ -208,6 +238,12 @@ public class OrderDao extends GenericDao<Order, Long> implements IOrderDao {
         return null;
     }
 
+    /**
+     * statement, és resultSet lezárása
+     * 
+     * @param statement
+     * @param resultSet 
+     */
     private void close(PreparedStatement statement, ResultSet resultSet) {
         try {
             if (!(statement == null || statement.isClosed())) {

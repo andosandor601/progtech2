@@ -12,9 +12,9 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import progtech2.frontend.GuiManager;
 import progtech2.frontend.components.factory.SwingComponentFactory;
-import progtech2.frontend.windows.DashboardWindow;
 
 /**
+ * Kereskedők kezelését lehetővé tevő panel (új kereskedő felvétele, ...)
  *
  * @author <Andó Sándor Zsolt>
  */
@@ -22,22 +22,28 @@ public class RetailerPanel extends JPanel {
 
     private JButton newRetailerButton;
     private JTextField addressTextField, creditLineTextField, phoneNumberTextField, retailerNameTextField;
-    private final DashboardWindow window;
 
-    public RetailerPanel(DashboardWindow frame) {
-        this.window = frame;
+    public RetailerPanel() {
         initProductPanel();
     }
 
     private void initProductPanel() {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        
+
         retailerNameTextField = SwingComponentFactory.generateTextField(this, "Kiskereskedő neve:");
         addressTextField = SwingComponentFactory.generateTextField(this, "Cím:");
         phoneNumberTextField = SwingComponentFactory.generateTextField(this, "Telefonszám:");
         creditLineTextField = SwingComponentFactory.generateTextField(this, "Hitelkeret:");
-        
+
         newRetailerButton = SwingComponentFactory.generateButton(this, "Új kereskedő hozzáadása");
+        
+        /**
+         * this::addNewRetailer => method reference
+         * https://docs.oracle.com/javase/tutorial/java/javaOO/methodreferences.html
+         *
+         * https://stackoverflow.com/questions/41069817/making-an-action-listener-for-a-jbutton-as-a-method
+         *
+         */
         newRetailerButton.addActionListener(this::addNewRetailer);
     }
 

@@ -18,6 +18,7 @@ import progtech2.frontend.components.factory.SwingComponentFactory;
 import progtech2.frontend.validator.Validator;
 
 /**
+ * RetailerWindow kijelölt kiskereskedő módosítására szolgáló ablak
  *
  * @author <Andó Sándor Zsolt>
  */
@@ -52,6 +53,14 @@ public class RetailerWindow extends JFrame {
         phoneTextField = SwingComponentFactory.generateTextField(panel, "Telefonszám:", PHONE);
 
         modifyRetailerButton = SwingComponentFactory.generateButton(panel, "Rendelés megváltoztatása");
+        
+        /**
+         * this::modifyProduct => method reference
+         * https://docs.oracle.com/javase/tutorial/java/javaOO/methodreferences.html
+         *
+         * https://stackoverflow.com/questions/41069817/making-an-action-listener-for-a-jbutton-as-a-method
+         *
+         */
         modifyRetailerButton.addActionListener(this::modifyRetailer);
     }
 

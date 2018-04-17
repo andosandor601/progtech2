@@ -14,14 +14,17 @@ import javax.swing.JPanel;
 import progtech2.frontend.components.factory.SwingComponentFactory;
 
 /**
+ * OrderLineWindow A táblázatban kiválasztott rendeléssorhoz kapcsolódó
+ * műveletek (most csak a törlés) kezelése
  *
  * @author <Andó Sándor Zsolt>
  */
 public class OrderLineWindow extends JFrame {
 
     private JButton deleteOrderLineButton;
-    private long orderId, orderLineId;
-    private DashboardWindow screen;
+    private final long orderId;
+    private final long orderLineId;
+    private final DashboardWindow screen;
 
     public OrderLineWindow(DashboardWindow screen, long orderLineId, long orderId) {
         this.orderId = orderId;
@@ -33,16 +36,24 @@ public class OrderLineWindow extends JFrame {
     private void initWindow() {
         setTitle(orderLineId + " azonosítójú rendeléssor törlése");
         setLayout(new FlowLayout());
-        
+
         JPanel panel = new JPanel(new FlowLayout());
-        
+
         deleteOrderLineButton = SwingComponentFactory.generateButton(panel, "Kijelölt rendeléssor törlése");
+
+        /**
+         * this::deleteOrderLine => method reference
+         * https://docs.oracle.com/javase/tutorial/java/javaOO/methodreferences.html
+         *
+         * https://stackoverflow.com/questions/41069817/making-an-action-listener-for-a-jbutton-as-a-method
+         *
+         */
         deleteOrderLineButton.addActionListener(this::deleteOrderLine);
-        
+
         add(panel);
     }
-    
-    private void deleteOrderLine(ActionEvent event){
+
+    private void deleteOrderLine(ActionEvent event) {
         screen.deleteOrderLine(orderLineId, orderId);
         this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
     }

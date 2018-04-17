@@ -111,13 +111,6 @@ public class Service implements IService {
         dm.deleteOrder(orderId);
     }
 
-    private void returnAllOrderedProductsToStock(long orderId) {
-        List<OrderLine> orderLines = dm.findOrderLinesByOrderId(orderId);
-        orderLines.forEach(orderLine -> {
-            returnOrderedProductToStock(orderLine);
-        });
-    }
-
     @Override
     public void deleteOrderLine(long orderLineId) {
         OrderLine orderLine = dm.findOrderLine(orderLineId);

@@ -8,7 +8,7 @@ package progtech2.backend.dao;
 import java.util.List;
 
 /**
- * Generikus Dao Interfész, CRUD
+ * Generikus Dao Interfész, CRUD műveletek
  *
  * @author Andó Sándor Zsolt
  */

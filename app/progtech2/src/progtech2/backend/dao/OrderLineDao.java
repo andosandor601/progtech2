@@ -19,7 +19,8 @@ import progtech2.backend.entities.Product;
 import progtech2.backend.entities.Retailer;
 
 /**
- *
+ * OrderLineDao osztály, A rendeléssorokkal kapcsolatos adatbázis műveletek végrehajtásáért felel.
+ * 
  * @author <Andó Sándor Zsolt>
  */
 public class OrderLineDao extends GenericDao<OrderLine, Long> implements IOrderLineDao {
@@ -30,17 +31,28 @@ public class OrderLineDao extends GenericDao<OrderLine, Long> implements IOrderL
     
     @Override
     public void delete(Long key) {
+        
+        /**
+         * sql lekérdezés
+         *
+         * \"USERNAME\".\"orderLine\" => adatbázis.táblanév,
+         * ? => paraméter
+         */
         String sql = "DELETE FROM \"USERNAME\".\"orderLine\" WHERE orderLineId = ?";
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         try {
             statement = con.prepareStatement(sql);
+            
+            //paraméter beállítása
             statement.setLong(1, key);
 
+            //.executeUpdate() => SQL Data Manipulation Language (DML) (Update, Insert, Delete) típusú lekérdezés végrehajtása.
             statement.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(GenericDao.class.getName()).log(Level.SEVERE, null, ex);
         }finally{
+            //statement és resultset lezárása
             close(statement, resultSet);
         }
     }
@@ -53,7 +65,10 @@ public class OrderLineDao extends GenericDao<OrderLine, Long> implements IOrderL
         try {
             statement = con.prepareStatement(sql);
 
+            //.executeQuery => sql leérdezés végrehajtása, egy resultSet objektummal tér vissza
             resultSet = statement.executeQuery();
+            
+            //resultSet feldolgozása
             List<OrderLine> result = new LinkedList<>();
             while (resultSet.next()) {
                 result.add(setOrderLine(resultSet));
@@ -90,8 +105,14 @@ public class OrderLineDao extends GenericDao<OrderLine, Long> implements IOrderL
         return null;
     }
 
+    /**
+     * resultSet alapján egy új OrderLine objektum létrehozása
+     * 
+     * @param resultSet
+     * @return
+     * @throws SQLException 
+     */
     private OrderLine setOrderLine(ResultSet resultSet) throws SQLException {
-        //orderlineid, orderid, price, productname, quantity
         OrderLine orderLine = new OrderLine();
         orderLine.setOrderLineId(resultSet.getLong("orderLineId"));
         orderLine.setOrderId(resultSet.getLong("orderId"));
@@ -107,6 +128,8 @@ public class OrderLineDao extends GenericDao<OrderLine, Long> implements IOrderL
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         try {
+            
+            //Statement.RETURN_GENERATED_KEYS => beállítjuk, hogy a generált kulcs visszakérhető legyen
             statement = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             statement.setLong(1, entity.getOrderId());
             statement.setBigDecimal(2, entity.getPrice());
@@ -114,6 +137,7 @@ public class OrderLineDao extends GenericDao<OrderLine, Long> implements IOrderL
             statement.setInt(4, entity.getQuantity());
             statement.executeUpdate();
 
+            //generált kulcs lekérése
             ResultSet generatedKeys = statement.getGeneratedKeys();
             if (generatedKeys.next()) {
                 entity.setOrderLineId(generatedKeys.getLong(1));
@@ -169,8 +193,14 @@ public class OrderLineDao extends GenericDao<OrderLine, Long> implements IOrderL
         return null;
     }
 
+    /**
+     * Product létrehozása a resultSet alapján
+     * 
+     * @param resultSet
+     * @return
+     * @throws SQLException 
+     */
     private Product setProduct(ResultSet resultSet) throws SQLException {
-        //price productname stock
         Product product = new Product();
         product.setProductName(resultSet.getString("productName"));
         product.setPrice(resultSet.getBigDecimal("price"));
@@ -178,6 +208,12 @@ public class OrderLineDao extends GenericDao<OrderLine, Long> implements IOrderL
         return product;
     }
 
+    /**
+     * statement, és resultSet lezárása
+     * 
+     * @param statement
+     * @param resultSet 
+     */
     private void close(PreparedStatement statement, ResultSet resultSet) {
         try {
             if (!(statement == null || statement.isClosed())) {

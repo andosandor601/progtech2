@@ -24,6 +24,8 @@ import progtech2.frontend.windows.ProductWindow;
 import progtech2.frontend.windows.RetailerWindow;
 
 /**
+ * A felhasználói interfészeket fogja össze, továbbítja a felhasználói kéréseket
+ * a Service-nek
  *
  * @author <Andó Sándor Zsolt>
  */
@@ -31,8 +33,6 @@ public final class GuiManager {
 
     private static DashboardWindow screen;
     private static Service service = new Service();
-    private final static String BIGDECIMAL_REGEXP = "\\d+(\\.0*)?";
-    private final static String INTEGER_REGEXP = "\\d+";
 
     private GuiManager() {
     }
@@ -122,7 +122,7 @@ public final class GuiManager {
         service.modifyProduct(ID, price, quantity);
         screen.doListProducts();
     }
-    
+
     public static void modifyRetailer(String ID, String address, BigDecimal creditLine, String phone) {
         service.modifyRetailer(ID, address, creditLine, phone);
         screen.doListRetailers();

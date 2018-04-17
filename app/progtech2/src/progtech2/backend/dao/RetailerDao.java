@@ -9,17 +9,17 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import progtech2.backend.entities.Order;
-import progtech2.backend.entities.OrderLine;
 import progtech2.backend.entities.Retailer;
 import progtech2.backend.enums.OrderStatus;
 
 /**
+ * RetailerDao osztály. A kereskedőkkel kapcsolatos adatbázis műveletek
+ * végrehajtásáért felel.
  *
  * @author <Andó Sándor Zsolt>
  */
@@ -28,20 +28,29 @@ public class RetailerDao extends GenericDao<Retailer, String> implements IRetail
     public RetailerDao(Connection con) {
         super(con, "retailer", "retailerName");
     }
-    
+
     @Override
     public void delete(String key) {
+        /**
+         * sql lekérdezés
+         *
+         * \"USERNAME\".\"product\" => adatbázis.táblanév, ? => paraméter
+         */
         String sql = "DELETE FROM \"USERNAME\".\"retailer\" WHERE pname = ?";
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         try {
             statement = con.prepareStatement(sql);
+
+            //paraméter beállítása
             statement.setString(1, key);
 
+            //.executeUpdate() => SQL Data Manipulation Language (DML) (Update, Insert, Delete) típusú lekérdezés végrehajtása.
             statement.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(GenericDao.class.getName()).log(Level.SEVERE, null, ex);
-        }finally{
+        } finally {
+            //statement és resultset lezárása
             close(statement, resultSet);
         }
     }
@@ -54,7 +63,10 @@ public class RetailerDao extends GenericDao<Retailer, String> implements IRetail
         try {
             statement = con.prepareStatement(sql);
 
+            //.executeQuery => sql leérdezés végrehajtása, egy resultSet objektummal tér vissza
             resultSet = statement.executeQuery();
+            
+            //resultSet feldolgozása
             List<Retailer> result = new LinkedList<>();
             while (resultSet.next()) {
                 result.add(setRetailer(resultSet));
@@ -91,6 +103,13 @@ public class RetailerDao extends GenericDao<Retailer, String> implements IRetail
         return null;
     }
 
+    /**
+     * resultSet alapján egy új Retailer objektum létrehozása
+     * 
+     * @param resultSet
+     * @return
+     * @throws SQLException 
+     */
     private Retailer setRetailer(ResultSet resultSet) throws SQLException {
         //address, creditline, name, phone
         Retailer retailer = new Retailer();
@@ -164,6 +183,13 @@ public class RetailerDao extends GenericDao<Retailer, String> implements IRetail
         return null;
     }
 
+    /**
+     * resultSet alapján egy új Order objektum létrehozása
+     * 
+     * @param resultSet
+     * @return
+     * @throws SQLException 
+     */
     private Order setOrder(ResultSet resultSet) throws SQLException {
         Order order = new Order();
         order.setOrderId(resultSet.getLong("orderId"));
@@ -174,6 +200,12 @@ public class RetailerDao extends GenericDao<Retailer, String> implements IRetail
         return order;
     }
 
+    /**
+     * statement, és resultSet lezárása
+     * 
+     * @param statement
+     * @param resultSet 
+     */
     private void close(PreparedStatement statement, ResultSet resultSet) {
         try {
             if (!(statement == null || statement.isClosed())) {

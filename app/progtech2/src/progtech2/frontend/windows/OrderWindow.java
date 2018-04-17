@@ -29,6 +29,7 @@ import progtech2.frontend.components.factory.SwingComponentFactory;
 import progtech2.frontend.validator.Validator;
 
 /**
+ * OrderWindow Új rendelés felvitelére szolgáló ablak
  *
  * @author <Andó Sándor Zsolt>
  */
@@ -71,8 +72,16 @@ public class OrderWindow extends JFrame {
         });
 
         quantityTextField = SwingComponentFactory.generateTextField(actionPanel, "Rendelés mennyisége:");
-        
+
         newOrderLineButton = SwingComponentFactory.generateButton(actionPanel, "Új rendeléssor felvitele");
+        
+        /**
+         * this::addNewOrderLine => method reference
+         * https://docs.oracle.com/javase/tutorial/java/javaOO/methodreferences.html
+         *
+         * https://stackoverflow.com/questions/41069817/making-an-action-listener-for-a-jbutton-as-a-method
+         *
+         */
         newOrderLineButton.addActionListener(this::addNewOrderLine);
 
         actionPanel.add(Box.createRigidArea(new Dimension(0, 50)));
@@ -110,9 +119,9 @@ public class OrderWindow extends JFrame {
         orderLineTable.removeAll();
         DefaultTableModel dtm = new DefaultTableModel(COLUMN_NAMES, 0);
 
-        for (OrderLine row : content) {
+        content.forEach((row) -> {
             dtm.addRow(row.toArrayWithoutIds());
-        }
+        });
         orderLineTable.setModel(dtm);
     }
 

@@ -6,14 +6,7 @@
 package progtech2.backend.dao;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -45,16 +38,6 @@ public abstract class GenericDao<E, K> implements IGenericDao<E, K> {
 
     @Override
     public abstract void update(E entity);
-
-    private void close(PreparedStatement statement) {
-        try {
-            if (!(statement == null || statement.isClosed())) {
-                statement.close();
-            }
-        } catch (SQLException ex) {
-            Logger.getLogger(RetailerDao.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
 
     protected void setCon(Connection con) {
         this.con = con;

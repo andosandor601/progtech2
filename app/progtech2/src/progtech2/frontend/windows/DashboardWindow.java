@@ -22,6 +22,8 @@ import progtech2.frontend.components.ProductPanel;
 import progtech2.frontend.components.RetailerPanel;
 
 /**
+ * DashboardWindow, a fő ablak.
+ * A megfelelő panelek megjelenítése.
  *
  * @author <Andó Sándor Zsolt>
  */
@@ -49,7 +51,6 @@ public class DashboardWindow extends JFrame {
     }
 
     public void doListOrders() {
-        //layout igaztása, hogy csupán a táblázat mellé kerüljenek a dolgok, ne a gombok mellé
 
         remove(actionPanel);
         actionPanel = new OrderPanel(this);
@@ -68,7 +69,6 @@ public class DashboardWindow extends JFrame {
     }
 
     public void doListProducts() {
-        //layout igaztása, hogy csupán a táblázat mellé kerüljenek a dolgok, ne a gombok mellé
 
         remove(actionPanel);
         actionPanel = new ProductPanel(this);
@@ -87,10 +87,9 @@ public class DashboardWindow extends JFrame {
     }
 
     public void doListRetailers() {
-        //layout igaztása, hogy csupán a táblázat mellé kerüljenek a dolgok, ne a gombok mellé
 
         remove(actionPanel);
-        actionPanel = new RetailerPanel(this);
+        actionPanel = new RetailerPanel();
         add(actionPanel);
 
         List<Retailer> retailers = GuiManager.listAllRetailers();
@@ -125,11 +124,11 @@ public class DashboardWindow extends JFrame {
         GuiManager.deleteOrder(contentPanel.getSelectedRowIndex());
         doListOrders();
     }
-    
+
     public void deleteOrderLine(long orderLineId, long orderId) {
         GuiManager.deleteOrderLine(orderLineId);
-        if (actionPanel instanceof OrderPanel){
-            listOrderLines(orderId+"");
+        if (actionPanel instanceof OrderPanel) {
+            listOrderLines(orderId + "");
         }
         doListOrders();
     }
@@ -149,15 +148,15 @@ public class DashboardWindow extends JFrame {
     }
 
     public void addContent(List<Order> orders) {
-            List<Object[]> content = new ArrayList<>();
-            for (Order row : orders) {
-                content.add(row.toArray());
-            }
-            contentPanel.addContentToTable(content, ORDERLINE_COLUMN_NAMES);
+        List<Object[]> content = new ArrayList<>();
+        for (Order row : orders) {
+            content.add(row.toArray());
+        }
+        contentPanel.addContentToTable(content, ORDERLINE_COLUMN_NAMES);
 
-            revalidate();
-            repaint();
-            pack();
+        revalidate();
+        repaint();
+        pack();
     }
 
 }

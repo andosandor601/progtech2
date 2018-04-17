@@ -15,6 +15,7 @@ import progtech2.frontend.components.factory.SwingComponentFactory;
 import progtech2.frontend.windows.DashboardWindow;
 
 /**
+ * Termékekhez tartozó Panel (új termék felvétele, ... )
  *
  * @author <Andó Sándor Zsolt>
  */
@@ -33,6 +34,14 @@ public class ProductPanel extends JPanel {
         priceTextField = SwingComponentFactory.generateTextField(this, "Termék ára:");
         quantityTextField = SwingComponentFactory.generateTextField(this, "Mennyiség:");
         newProductButton = SwingComponentFactory.generateButton(this, "Új termék hozzáadása");
+
+        /**
+         * this::addNewProduct => method reference
+         * https://docs.oracle.com/javase/tutorial/java/javaOO/methodreferences.html
+         *
+         * https://stackoverflow.com/questions/41069817/making-an-action-listener-for-a-jbutton-as-a-method
+         *
+         */
         newProductButton.addActionListener(this::addNewProduct);
     }
 

@@ -9,11 +9,8 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
 import java.math.BigDecimal;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import progtech2.frontend.GuiManager;
@@ -21,6 +18,7 @@ import progtech2.frontend.components.factory.SwingComponentFactory;
 import progtech2.frontend.validator.Validator;
 
 /**
+ * ProductWindow Kijelölt termék módosítására/törlésére szolgáló ablak
  *
  * @author <Andó Sándor Zsolt>
  */
@@ -47,13 +45,21 @@ public class ProductWindow extends JFrame {
         setLayout(new FlowLayout());
         JPanel panel = new JPanel(new FlowLayout());
         add(panel);
-        
+
         priceTextField = SwingComponentFactory.generateTextField(panel, "ár:", PRICE.toString());
         stockTextField = SwingComponentFactory.generateTextField(panel, "menniység:", STOCK + "");
-        
+
         modifyProductButton = SwingComponentFactory.generateButton(panel, "Termék megváltoztatása");
-        modifyProductButton.addActionListener(this::modifyProduct);
         
+        /**
+         * this::modifyProduct => method reference
+         * https://docs.oracle.com/javase/tutorial/java/javaOO/methodreferences.html
+         *
+         * https://stackoverflow.com/questions/41069817/making-an-action-listener-for-a-jbutton-as-a-method
+         *
+         */
+        modifyProductButton.addActionListener(this::modifyProduct);
+
         deleteProductButton = SwingComponentFactory.generateButton(panel, "Termék törlése");
         deleteProductButton.addActionListener(this::deleteProduct);
     }

@@ -6,7 +6,7 @@
 package progtech2.frontend.enums;
 
 /**
- *
+ * Dashboard  állapotainak felsorolója (rendeléseket, termékeket vagy kiskereskedőket kezeljük)
  * @author <Andó Sándor Zsolt>
  */
 public enum Action {

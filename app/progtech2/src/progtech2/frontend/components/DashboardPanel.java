@@ -15,7 +15,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import progtech2.frontend.GuiManager;
 import progtech2.frontend.components.factory.SwingComponentFactory;
@@ -23,6 +22,7 @@ import progtech2.frontend.enums.Action;
 import progtech2.frontend.windows.DashboardWindow;
 
 /**
+ * Főpanel
  *
  * @author <Andó Sándor Zsolt>
  */
@@ -31,7 +31,7 @@ public class DashboardPanel extends JPanel {
     private JButton listOrdersButton, listProductsButton, listRetailersButton;
     private JTable resultTable;
     private JPanel buttonPanel, tablePanel;
-    private DashboardWindow window;
+    private final DashboardWindow window;
     private Action state;
 
     public DashboardPanel(DashboardWindow frame) {
@@ -49,7 +49,15 @@ public class DashboardPanel extends JPanel {
         tablePanel = new JPanel(new FlowLayout());
 
         resultTable = new JTable(5, 5);
-        addTableListener();
+        
+        /**
+         * this::newSelection => method reference
+         * https://docs.oracle.com/javase/tutorial/java/javaOO/methodreferences.html
+         *
+         * https://stackoverflow.com/questions/41069817/making-an-action-listener-for-a-jbutton-as-a-method
+         *
+         */
+        resultTable.getSelectionModel().addListSelectionListener(this::newSelection);
         tablePanel.add(new JScrollPane(resultTable));
         add(buttonPanel, gbc);
         add(tablePanel, gbc);
@@ -57,11 +65,12 @@ public class DashboardPanel extends JPanel {
 
     private void initButtons() {
         listOrdersButton = SwingComponentFactory.generateButton(buttonPanel, "Rendelések");
-        listOrdersButton.addActionListener(this::doListOrders);
         
+        listOrdersButton.addActionListener(this::doListOrders);
+
         listProductsButton = SwingComponentFactory.generateButton(buttonPanel, "Termékek");
         listProductsButton.addActionListener(this::doListProducts);
-        
+
         listRetailersButton = SwingComponentFactory.generateButton(buttonPanel, "Kiskereskedők");
         listRetailersButton.addActionListener(this::doListRetailers);
     }
@@ -80,28 +89,23 @@ public class DashboardPanel extends JPanel {
         this.setState(Action.RETAILER);
         window.doListRetailers();
     }
-    
+
     private void setState(Action state) {
         this.state = state;
     }
 
-    private void addTableListener() {
-        resultTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent event) {
-                if (event.getValueIsAdjusting() && resultTable.getSelectedRow() > -1) {
-                    if (state.equals(Action.ORDER)) {
-                        window.listOrderLines(resultTable.getValueAt(resultTable.getSelectedRow(), 0));
-                    } else if (state.equals(Action.PRODUCT)){
-                        int row = resultTable.getSelectedRow();
-                        GuiManager.showProductWindow(resultTable.getValueAt(row, 0), resultTable.getValueAt(row, 1), resultTable.getValueAt(row, 2));
-                    } else if (state.equals(Action.RETAILER)){
-                        int row = resultTable.getSelectedRow();
-                        GuiManager.showRetailerWindow(resultTable.getValueAt(row, 0), resultTable.getValueAt(row, 1), resultTable.getValueAt(row, 2), resultTable.getValueAt(row, 3));
-                    }
-                }
+    private void newSelection(ListSelectionEvent event) {
+        if (event.getValueIsAdjusting() && resultTable.getSelectedRow() > -1) {
+            if (state.equals(Action.ORDER)) {
+                window.listOrderLines(resultTable.getValueAt(resultTable.getSelectedRow(), 0));
+            } else if (state.equals(Action.PRODUCT)) {
+                int row = resultTable.getSelectedRow();
+                GuiManager.showProductWindow(resultTable.getValueAt(row, 0), resultTable.getValueAt(row, 1), resultTable.getValueAt(row, 2));
+            } else if (state.equals(Action.RETAILER)) {
+                int row = resultTable.getSelectedRow();
+                GuiManager.showRetailerWindow(resultTable.getValueAt(row, 0), resultTable.getValueAt(row, 1), resultTable.getValueAt(row, 2), resultTable.getValueAt(row, 3));
             }
-        });
+        }
     }
 
     public <E> void addContentToTable(List<E> content, Object[] columnNames) {

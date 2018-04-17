@@ -17,17 +17,20 @@ import progtech2.backend.entities.Product;
 import progtech2.backend.entities.Retailer;
 
 /**
- *
+ * A különböző dao osztályokat fogja össze és kezeli
+ * 
  * @author <Andó Sándor Zsolt>
  */
 public class DaoManager {
 
+    /** Az adatbáziskapcsolódáshoz szükséges adatok */
     private static final String URL = "jdbc:derby:progtech2";
     private static final String USER = "username";
     private static final String PASSWORD = "password";
 
     private Connection con;
 
+    /** A feladatban használt dao osztályok */
     private ProductDao pDao;
     private RetailerDao rDao;
     private OrderDao oDao;
@@ -40,6 +43,16 @@ public class DaoManager {
         this.pDao = new ProductDao(con);
     }
 
+    /**
+     * Egy szerviz által hívott DaoManager-beli metódus szerkezete:
+     * open();
+     * dao.setCon();
+     * Az adatbáziskezeléshez kapcsolódó művelet feldolgozása a specifikus dao-k segítségével.
+     * close();
+     * 
+     * @param retailerName
+     * @return 
+     */
     public Retailer findRetailer(String retailerName) {
         open();
         rDao.setCon(con);
@@ -204,6 +217,9 @@ public class DaoManager {
         close();
     }
 
+    /**
+     * Új connection, csatlakozás az adatbázishoz
+     */
     private void open() {
         try {
             DriverManager.registerDriver(new org.apache.derby.jdbc.EmbeddedDriver());
@@ -216,6 +232,9 @@ public class DaoManager {
         }
     }
 
+    /**
+     * connection lezárása
+     */
     private void close() {
         try {
             if ((con != null) && !con.isClosed()) {

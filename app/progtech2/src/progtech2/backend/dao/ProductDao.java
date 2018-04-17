@@ -9,15 +9,15 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import progtech2.backend.entities.OrderLine;
 import progtech2.backend.entities.Product;
 
 /**
+ * ProductDao osztály. A temékekkel kapcsolatos adatbázis műveletek
+ * végrehajtásáért felel.
  *
  * @author <Andó Sándor Zsolt>
  */
@@ -26,20 +26,30 @@ public class ProductDao extends GenericDao<Product, String> {
     public ProductDao(Connection con) {
         super(con, "prodect", "productName");
     }
-    
+
     @Override
     public void delete(String key) {
+
+        /**
+         * sql lekérdezés
+         *
+         * \"USERNAME\".\"product\" => adatbázis.táblanév, ? => paraméter
+         */
         String sql = "DELETE FROM \"USERNAME\".\"product\" WHERE productName = ?";
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         try {
             statement = con.prepareStatement(sql);
+
+            //paraméter beállítása
             statement.setString(1, key);
 
+            //.executeUpdate() => SQL Data Manipulation Language (DML) (Update, Insert, Delete) típusú lekérdezés végrehajtása.
             statement.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(GenericDao.class.getName()).log(Level.SEVERE, null, ex);
-        }finally{
+        } finally {
+            //statement és resultset lezárása
             close(statement, resultSet);
         }
     }
@@ -52,7 +62,10 @@ public class ProductDao extends GenericDao<Product, String> {
         try {
             statement = con.prepareStatement(sql);
 
+            //.executeQuery => sql leérdezés végrehajtása, egy resultSet objektummal tér vissza
             resultSet = statement.executeQuery();
+
+            //resultSet feldolgozása
             List<Product> result = new LinkedList<>();
             while (resultSet.next()) {
                 result.add(setProduct(resultSet));
@@ -89,8 +102,14 @@ public class ProductDao extends GenericDao<Product, String> {
         return null;
     }
 
+    /**
+     * resultSet alapján egy új Product objektum létrehozása
+     * 
+     * @param resultSet
+     * @return
+     * @throws SQLException 
+     */
     private Product setProduct(ResultSet resultSet) throws SQLException {
-        //price productname stock
         Product product = new Product();
         product.setProductName(resultSet.getString("productName"));
         product.setPrice(resultSet.getBigDecimal("price"));
@@ -137,6 +156,12 @@ public class ProductDao extends GenericDao<Product, String> {
         }
     }
 
+    /**
+     * statement, és resultSet lezárása
+     * 
+     * @param statement
+     * @param resultSet 
+     */
     private void close(PreparedStatement statement, ResultSet resultSet) {
         try {
             if (!(statement == null || statement.isClosed())) {
