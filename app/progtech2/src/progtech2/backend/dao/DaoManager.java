@@ -139,6 +139,13 @@ public class DaoManager {
         pDao.delete(productName);
         close();
     }
+    
+    public void deleteRetailer(String retailerName) {
+        open();
+        rDao.setCon(con);
+        rDao.delete(retailerName);
+        close();
+    }
 
     public List<Order> listNotDeliveredOrders() {
         open();

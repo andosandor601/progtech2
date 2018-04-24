@@ -31,15 +31,6 @@ public interface IService {
     void addOrder(String retailerName, List<OrderLine> orderLines) throws ServiceException;
 
     /**
-     * Új rendeléssor elmentése
-     *
-     * @param productName
-     * @param quantity
-     * @return
-     */
-    OrderLine addOrderLine(String productName, int quantity);
-
-    /**
      * Új termék elmentése
      *
      * @param productName

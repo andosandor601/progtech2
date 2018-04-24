@@ -34,9 +34,9 @@ public class RetailerDao extends GenericDao<Retailer, String> implements IRetail
         /**
          * sql lekérdezés
          *
-         * \"USERNAME\".\"product\" => adatbázis.táblanév, ? => paraméter
+         * \"USERNAME\".\"retailer\" => adatbázis.táblanév, ? => paraméter
          */
-        String sql = "DELETE FROM \"USERNAME\".\"retailer\" WHERE pname = ?";
+        String sql = "DELETE FROM \"USERNAME\".\"retailer\" WHERE name = ?";
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         try {

@@ -64,22 +64,6 @@ public class Service implements IService {
     }
 
     @Override
-    public OrderLine addOrderLine(String productName, int quantity) {
-        OrderLine orderLine = new OrderLine();
-        Product product = dm.findProduct(productName);
-
-        orderLine.setProduct(productName);
-        orderLine.setQuantity(quantity);
-        orderLine.setPrice(product.getPrice().multiply(new BigDecimal(quantity)));
-
-        modifyProductQuantity(product.getProductName(), product.getStock() - quantity);
-
-        orderLine = dm.saveOrderLine(orderLine);
-
-        return orderLine;
-    }
-
-    @Override
     public void addProduct(String productName, BigDecimal price, int stock) {
         Product product = new Product();
 
@@ -122,7 +106,7 @@ public class Service implements IService {
         dm.deleteOrderLine(orderLineId);
 
         List<OrderLine> orderLines = listOrderLines(orderId);
-        modifyOrderPrice(orderLine.getOrderId(), sumOrderLines(orderLines));
+        modifyOrderPrice(orderId, sumOrderLines(orderLines));
     }
 
     private void returnOrderedProductToStock(OrderLine orderLine) {
@@ -133,6 +117,10 @@ public class Service implements IService {
     @Override
     public void deleteProduct(String productName) throws ServiceException {
         dm.deleteProduct(productName);
+    }
+    
+    public void deleteRetailer(String retailerName) throws ServiceException {
+        dm.deleteRetailer(retailerName);
     }
 
     @Override
