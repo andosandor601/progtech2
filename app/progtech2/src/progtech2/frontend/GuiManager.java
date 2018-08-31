@@ -13,6 +13,7 @@ import progtech2.backend.entities.OrderLine;
 import progtech2.backend.entities.Product;
 import progtech2.backend.entities.Retailer;
 import progtech2.backend.enums.OrderStatus;
+import progtech2.backend.service.IService;
 import progtech2.backend.service.Service;
 import progtech2.backend.service.exceptions.ServiceException;
 import progtech2.frontend.validator.Validator;
@@ -32,7 +33,7 @@ import progtech2.frontend.windows.RetailerWindow;
 public final class GuiManager {
 
     private static DashboardWindow screen;
-    private static Service service = new Service();
+    private static final IService service = new Service();
 
     private GuiManager() {
     }

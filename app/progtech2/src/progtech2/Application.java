@@ -5,7 +5,6 @@
  */
 package progtech2;
 
-import javax.swing.JFrame;
 import progtech2.frontend.GuiManager;
 
 /**

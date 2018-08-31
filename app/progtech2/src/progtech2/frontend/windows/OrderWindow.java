@@ -67,14 +67,14 @@ public class OrderWindow extends JFrame {
         actionPanel.setLayout(new BoxLayout(actionPanel, BoxLayout.Y_AXIS));
 
         productsComboBox = SwingComponentFactory.generateComboBox(actionPanel, "Termék kiválasztása");
-        GuiManager.listAllProducts().forEach(product -> {
-            productsComboBox.addItem(product.getProductName());
-        });
+        GuiManager.listAllProducts().forEach(product
+                -> productsComboBox.addItem(product.getProductName())
+        );
 
         quantityTextField = SwingComponentFactory.generateTextField(actionPanel, "Rendelés mennyisége:");
 
         newOrderLineButton = SwingComponentFactory.generateButton(actionPanel, "Új rendeléssor felvitele");
-        
+
         /**
          * this::addNewOrderLine => method reference
          * https://docs.oracle.com/javase/tutorial/java/javaOO/methodreferences.html
@@ -87,9 +87,9 @@ public class OrderWindow extends JFrame {
         actionPanel.add(Box.createRigidArea(new Dimension(0, 50)));
 
         retailersComboBox = SwingComponentFactory.generateComboBox(actionPanel, "Kereskedő kiválasztása");
-        GuiManager.listAllRetailers().forEach(retailer -> {
-            retailersComboBox.addItem(retailer.getName());
-        });
+        GuiManager.listAllRetailers().forEach(retailer
+                -> retailersComboBox.addItem(retailer.getName())
+        );
 
         addNewOrderButton = SwingComponentFactory.generateButton(actionPanel, "Rendelés leadása");
         addNewOrderButton.addActionListener(this::addNewOrder);
@@ -119,9 +119,7 @@ public class OrderWindow extends JFrame {
         orderLineTable.removeAll();
         DefaultTableModel dtm = new DefaultTableModel(COLUMN_NAMES, 0);
 
-        content.forEach((row) -> {
-            dtm.addRow(row.toArrayWithoutIds());
-        });
+        content.forEach(row -> dtm.addRow(row.toArrayWithoutIds()));
         orderLineTable.setModel(dtm);
     }
 

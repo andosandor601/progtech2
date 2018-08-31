@@ -14,7 +14,7 @@ import progtech2.backend.entities.OrderLine;
  *
  * @author Andó Sándor Zsolt
  */
-public interface IOrderDao {
+public interface IOrderDao extends ICRUDDao<Order, Long> {
 
     /**
      * A megadott kulcsú rendeléshez tartozó rendeléssor megkeresése

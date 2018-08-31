@@ -111,10 +111,7 @@ public class DashboardPanel extends JPanel {
     public <E> void addContentToTable(List<E> content, Object[] columnNames) {
         resultTable.removeAll();
         DefaultTableModel dtm = new DefaultTableModel(columnNames, 0);
-
-        for (E row : content) {
-            dtm.addRow((Object[]) row);
-        }
+        content.forEach(row -> dtm.addRow((Object[]) row));
         resultTable.setModel(dtm);
     }
 

@@ -7,7 +7,6 @@ package progtech2.backend.entities;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.List;
 import progtech2.backend.enums.OrderStatus;
 
 /**

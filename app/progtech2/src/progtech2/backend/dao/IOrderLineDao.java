@@ -5,6 +5,7 @@
  */
 package progtech2.backend.dao;
 
+import progtech2.backend.entities.OrderLine;
 import progtech2.backend.entities.Product;
 
 /**
@@ -12,7 +13,7 @@ import progtech2.backend.entities.Product;
  *
  * @author Andó Sándor Zsolt
  */
-public interface IOrderLineDao {
+public interface IOrderLineDao extends ICRUDDao<OrderLine, Long>{
 
     /**
      * Az adott kulcsú rendeléssorhoz tartozó termék megkeresése

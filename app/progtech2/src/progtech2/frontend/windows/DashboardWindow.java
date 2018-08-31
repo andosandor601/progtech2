@@ -58,9 +58,7 @@ public class DashboardWindow extends JFrame {
 
         List<Order> orders = GuiManager.listAllOrders();
         List<Object> content = new ArrayList<>();
-        for (Order row : orders) {
-            content.add(row.toArray());
-        }
+        orders.forEach(row -> content.add(row.toArray()));
         contentPanel.addContentToTable(content, ORDER_COLUMN_NAMES);
 
         revalidate();
@@ -76,9 +74,7 @@ public class DashboardWindow extends JFrame {
 
         List<Product> products = GuiManager.listAllProducts();
         List<Object[]> content = new ArrayList<>();
-        for (Product row : products) {
-            content.add(row.toArray());
-        }
+        products.forEach(row -> content.add(row.toArray()));
         contentPanel.addContentToTable(content, PRODUCT_COLUMN_NAMES);
 
         revalidate();
@@ -94,9 +90,7 @@ public class DashboardWindow extends JFrame {
 
         List<Retailer> retailers = GuiManager.listAllRetailers();
         List<Object[]> content = new ArrayList<>();
-        for (Retailer row : retailers) {
-            content.add(row.toArray());
-        }
+        retailers.forEach(row -> content.add(row.toArray()));
         contentPanel.addContentToTable(content, RETAILER_COLUMN_NAMES);
 
         revalidate();
@@ -109,9 +103,7 @@ public class DashboardWindow extends JFrame {
         if (actionPanel instanceof OrderPanel) {
             List<OrderLine> orderLines = GuiManager.listOrderLines((String) orderId);
             List<Object[]> content = new ArrayList<>();
-            for (OrderLine row : orderLines) {
-                content.add(row.toArray());
-            }
+            orderLines.forEach(row -> content.add(row.toArray()));
             ((OrderPanel) actionPanel).addContentToTable(content, ORDERLINE_COLUMN_NAMES);
 
             revalidate();
@@ -149,9 +141,7 @@ public class DashboardWindow extends JFrame {
 
     public void addContent(List<Order> orders) {
         List<Object[]> content = new ArrayList<>();
-        for (Order row : orders) {
-            content.add(row.toArray());
-        }
+        orders.forEach(row -> content.add(row.toArray()));
         contentPanel.addContentToTable(content, ORDERLINE_COLUMN_NAMES);
 
         revalidate();

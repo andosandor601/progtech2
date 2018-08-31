@@ -5,14 +5,15 @@
  */
 package progtech2.backend.dao;
 
+import java.sql.Connection;
 import java.util.List;
 
 /**
- * Generikus Dao Interfész, CRUD műveletek
+ * Generikus Dao Interfész, CRUD műveletek (Create, Read, Update, Delete)
  *
  * @author Andó Sándor Zsolt
  */
-public interface IGenericDao<E, K> {
+public interface ICRUDDao<E, K> {
 
     /**
      * Egy kulcsértékkel megadott entitás törlése
@@ -50,5 +51,7 @@ public interface IGenericDao<E, K> {
      * @param entity
      */
     void update(E entity);
+    
+    void setCon(Connection con);
 
 }

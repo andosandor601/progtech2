@@ -71,9 +71,7 @@ public class OrderPanel extends JPanel {
     private void initComboBox() {
         retailersComboBox = SwingComponentFactory.generateComboBox(this, "Szűrés kiskereskedőre:");
 
-        GuiManager.listAllRetailers().forEach(retailer -> {
-            retailersComboBox.addItem(retailer.getName());
-        });
+        GuiManager.listAllRetailers().forEach(retailer -> retailersComboBox.addItem(retailer.getName()));
 
         retailersComboBox.addItemListener(this::selectRetailer);
     }
@@ -107,10 +105,7 @@ public class OrderPanel extends JPanel {
     public <E> void addContentToTable(List<E> content, Object[] columnNames) {
         orderLineTable.removeAll();
         DefaultTableModel dtm = new DefaultTableModel(columnNames, 0);
-
-        for (E row : content) {
-            dtm.addRow((Object[]) row);
-        }
+        content.forEach(row -> dtm.addRow((Object[]) row));
         orderLineTable.setModel(dtm);
     }
 }

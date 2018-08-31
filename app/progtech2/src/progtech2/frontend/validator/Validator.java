@@ -7,6 +7,7 @@ package progtech2.frontend.validator;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.regex.Pattern;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
@@ -17,8 +18,10 @@ import javax.swing.JOptionPane;
  */
 public final class Validator {
 
-    private final static String INTEGER_REGEXP = "\\d+";
-    private final static String BIGDECIMAL_REGEXP = "-?(?:\\d+(?:\\.\\d+)?|\\.\\d+)";
+    //Gyakran használt string-regexp-ekre egy Pattern definiálása gyorsabb lesz, mint a string.matches metódus használata
+    //lsd. Effective JAVA Item 6.
+    private final static Pattern INTEGER_PATTERN = Pattern.compile("\\d+");
+    private final static Pattern BIGDECIMAL_PATTERN = Pattern.compile("-?(?:\\d+(?:\\.\\d+)?|\\.\\d+)");
 
     private Validator() {
     }
@@ -28,7 +31,7 @@ public final class Validator {
             JOptionPane.showMessageDialog(frame, "Hiányzó mező");
             return false;
         }
-        if (!integer.matches(INTEGER_REGEXP)) {
+        if (!INTEGER_PATTERN.matcher(integer).matches()) {
             JOptionPane.showMessageDialog(frame, "Hibás számbevitel");
             return false;
         } else if (Integer.parseInt(integer) < 0) {
@@ -43,7 +46,7 @@ public final class Validator {
             JOptionPane.showMessageDialog(frame, "hiányzó paraméter");
             return false;
         }
-        if (!creditLine.matches(BIGDECIMAL_REGEXP)) {
+        if (!BIGDECIMAL_PATTERN.matcher(creditLine).matches()) {
             JOptionPane.showMessageDialog(frame, "Hibásan megadott hitelkeret");
             return false;
         } else if (new BigDecimal(creditLine).compareTo(BigDecimal.ZERO) < 1) {
@@ -58,7 +61,7 @@ public final class Validator {
             JOptionPane.showMessageDialog(frame, "hiányzó paraméter");
             return false;
         }
-        if (!creditLine.matches(BIGDECIMAL_REGEXP)) {
+        if (! !BIGDECIMAL_PATTERN.matcher(creditLine).matches()) {
             JOptionPane.showMessageDialog(frame, "Hibásan megadott hitelkeret");
             return false;
         } else if (new BigDecimal(creditLine).compareTo(BigDecimal.ZERO) < 1) {
@@ -84,11 +87,11 @@ public final class Validator {
             JOptionPane.showMessageDialog(frame, "hiányzó paraméter");
             return false;
         }
-        if (!price.matches(BIGDECIMAL_REGEXP)) {
+        if (!BIGDECIMAL_PATTERN.matcher(price).matches()) {
             JOptionPane.showMessageDialog(frame, "Hibásan megadott ár");
             return false;
         }
-        if (!stock.matches(INTEGER_REGEXP)) {
+        if (!INTEGER_PATTERN.matcher(stock).matches()) {
             JOptionPane.showMessageDialog(frame, "Hibásan megadott mennyiség");
             return false;
         } else if (Integer.parseInt(stock) < 0 || new BigDecimal(price).compareTo(BigDecimal.ZERO) < 1) {
@@ -103,11 +106,11 @@ public final class Validator {
             JOptionPane.showMessageDialog(frame, "hiányzó paraméter");
             return false;
         }
-        if (!price.matches(BIGDECIMAL_REGEXP)) {
+        if (!BIGDECIMAL_PATTERN.matcher(price).matches()) {
             JOptionPane.showMessageDialog(frame, "Hibásan megadott ár");
             return false;
         }
-        if (!stock.matches(INTEGER_REGEXP)) {
+        if (!INTEGER_PATTERN.matcher(stock).matches()) {
             JOptionPane.showMessageDialog(frame, "Hibásan megadott mennyiség");
             return false;
         } else if (Integer.parseInt(stock) < 0 || new BigDecimal(price).compareTo(BigDecimal.ZERO) < 1) {

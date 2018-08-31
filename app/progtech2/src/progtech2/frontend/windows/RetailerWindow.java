@@ -52,7 +52,7 @@ public class RetailerWindow extends JFrame {
         creditLineTextField = SwingComponentFactory.generateTextField(panel, "Hitelkeret:", CREDITLINE.toString());
         phoneTextField = SwingComponentFactory.generateTextField(panel, "Telefonszám:", PHONE);
 
-        modifyRetailerButton = SwingComponentFactory.generateButton(panel, "Rendelés megváltoztatása");
+        modifyRetailerButton = SwingComponentFactory.generateButton(panel, "Kereskedő megváltoztatása");
         
         /**
          * this::modifyProduct => method reference

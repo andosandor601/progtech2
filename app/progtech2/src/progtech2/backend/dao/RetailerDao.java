@@ -23,10 +23,12 @@ import progtech2.backend.enums.OrderStatus;
  *
  * @author <Andó Sándor Zsolt>
  */
-public class RetailerDao extends GenericDao<Retailer, String> implements IRetailerDao {
+public class RetailerDao implements IRetailerDao {
+
+    private Connection con;
 
     public RetailerDao(Connection con) {
-        super(con, "retailer", "retailerName");
+        this.con = con;
     }
 
     @Override
@@ -37,35 +39,26 @@ public class RetailerDao extends GenericDao<Retailer, String> implements IRetail
          * \"USERNAME\".\"retailer\" => adatbázis.táblanév, ? => paraméter
          */
         String sql = "DELETE FROM \"USERNAME\".\"retailer\" WHERE name = ?";
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = con.prepareStatement(sql);
-
+        //try-with-resources try-catch-finally helyett lásd effective java item 9
+        try (PreparedStatement statement = con.prepareStatement(sql)) {
             //paraméter beállítása
             statement.setString(1, key);
 
             //.executeUpdate() => SQL Data Manipulation Language (DML) (Update, Insert, Delete) típusú lekérdezés végrehajtása.
             statement.executeUpdate();
         } catch (SQLException ex) {
-            Logger.getLogger(GenericDao.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            //statement és resultset lezárása
-            close(statement, resultSet);
+            Logger.getLogger(OrderDao.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     @Override
     public List<Retailer> findAll() {
         String sql = "SELECT * FROM \"USERNAME\".\"retailer\"";
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = con.prepareStatement(sql);
+        //try-with-resources try-catch-finally helyett lásd effective java item 9
+        //.executeQuery => sql leérdezés végrehajtása, egy resultSet objektummal tér vissza
+        try (PreparedStatement statement = con.prepareStatement(sql);
+                ResultSet resultSet = statement.executeQuery();) {
 
-            //.executeQuery => sql leérdezés végrehajtása, egy resultSet objektummal tér vissza
-            resultSet = statement.executeQuery();
-            
             //resultSet feldolgozása
             List<Retailer> result = new LinkedList<>();
             while (resultSet.next()) {
@@ -74,8 +67,6 @@ public class RetailerDao extends GenericDao<Retailer, String> implements IRetail
             return result;
         } catch (SQLException ex) {
             Logger.getLogger(OrderDao.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            close(statement, resultSet);
         }
         return null;
     }
@@ -83,13 +74,9 @@ public class RetailerDao extends GenericDao<Retailer, String> implements IRetail
     @Override
     public Retailer findById(String key) {
         String sql = "SELECT * FROM \"USERNAME\".\"retailer\" WHERE name = ?";
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = con.prepareStatement(sql);
-            statement.setString(1, key);
+        try (PreparedStatement statement = createPreparedStatement(con, sql, key);
+                ResultSet resultSet = statement.executeQuery();) {
 
-            resultSet = statement.executeQuery();
             List<Retailer> result = new LinkedList<>();
             while (resultSet.next()) {
                 result.add(setRetailer(resultSet));
@@ -97,18 +84,16 @@ public class RetailerDao extends GenericDao<Retailer, String> implements IRetail
             return result.get(0);
         } catch (SQLException ex) {
             Logger.getLogger(OrderDao.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            close(statement, resultSet);
         }
         return null;
     }
 
     /**
      * resultSet alapján egy új Retailer objektum létrehozása
-     * 
+     *
      * @param resultSet
      * @return
-     * @throws SQLException 
+     * @throws SQLException
      */
     private Retailer setRetailer(ResultSet resultSet) throws SQLException {
         //address, creditline, name, phone
@@ -123,10 +108,7 @@ public class RetailerDao extends GenericDao<Retailer, String> implements IRetail
     @Override
     public Retailer save(Retailer entity) {
         String sql = "INSERT INTO \"USERNAME\".\"retailer\" (name, address, creditLine, phone) VALUES (?, ?, ?, ?)";
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = con.prepareStatement(sql);
+        try (PreparedStatement statement = con.prepareStatement(sql)) {
             statement.setString(1, entity.getName());
             statement.setString(2, entity.getAddress());
             statement.setBigDecimal(3, entity.getCreditLine());
@@ -135,8 +117,6 @@ public class RetailerDao extends GenericDao<Retailer, String> implements IRetail
             return entity;
         } catch (SQLException ex) {
             Logger.getLogger(OrderDao.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            close(statement, resultSet);
         }
         return null;
     }
@@ -144,10 +124,8 @@ public class RetailerDao extends GenericDao<Retailer, String> implements IRetail
     @Override
     public void update(Retailer entity) {
         String sql = "UPDATE \"USERNAME\".\"retailer\" SET address=?, creditLine=?, phone=? WHERE name=?";
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = con.prepareStatement(sql);
+        try (PreparedStatement statement = con.prepareStatement(sql)) {
+            
             statement.setString(1, entity.getAddress());
             statement.setBigDecimal(2, entity.getCreditLine());
             statement.setString(3, entity.getPhone());
@@ -155,21 +133,15 @@ public class RetailerDao extends GenericDao<Retailer, String> implements IRetail
             statement.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(OrderDao.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            close(statement, resultSet);
         }
     }
 
     @Override
     public List<Order> findOrdersByRetailerId(String key) {
         String sql = "SELECT * FROM \"USERNAME\".\"order\" WHERE retailerName = ?";
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = con.prepareStatement(sql);
-            statement.setString(1, key);
-
-            resultSet = statement.executeQuery();
+        try (PreparedStatement statement = createPreparedStatement(con, sql, key);
+                ResultSet resultSet = statement.executeQuery();) {
+            
             List<Order> result = new LinkedList<>();
             while (resultSet.next()) {
                 result.add(setOrder(resultSet));
@@ -177,18 +149,16 @@ public class RetailerDao extends GenericDao<Retailer, String> implements IRetail
             return result;
         } catch (SQLException ex) {
             Logger.getLogger(OrderDao.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            close(statement, resultSet);
         }
         return null;
     }
 
     /**
      * resultSet alapján egy új Order objektum létrehozása
-     * 
+     *
      * @param resultSet
      * @return
-     * @throws SQLException 
+     * @throws SQLException
      */
     private Order setOrder(ResultSet resultSet) throws SQLException {
         Order order = new Order();
@@ -202,9 +172,9 @@ public class RetailerDao extends GenericDao<Retailer, String> implements IRetail
 
     /**
      * statement, és resultSet lezárása
-     * 
+     *
      * @param statement
-     * @param resultSet 
+     * @param resultSet
      */
     private void close(PreparedStatement statement, ResultSet resultSet) {
         try {
@@ -217,6 +187,19 @@ public class RetailerDao extends GenericDao<Retailer, String> implements IRetail
         } catch (SQLException ex) {
             Logger.getLogger(RetailerDao.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    private PreparedStatement createPreparedStatement(Connection con, String sql, String key) throws SQLException {
+        PreparedStatement statement = con.prepareStatement(sql);
+
+        statement.setString(1, key);
+
+        return statement;
+    }
+    
+    @Override
+    public void setCon(Connection con) {
+        this.con = con;
     }
 
 }

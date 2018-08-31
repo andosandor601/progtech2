@@ -19,14 +19,17 @@ import progtech2.backend.entities.OrderLine;
 import progtech2.backend.enums.OrderStatus;
 
 /**
- * OrderDao osztály, A rendelésekkel kapcsolatos adatbázis műveletek végrehajtásáért felel.
- * 
+ * OrderDao osztály, A rendelésekkel kapcsolatos adatbázis műveletek
+ * végrehajtásáért felel.
+ *
  * @author <Andó Sándor Zsolt>
  */
-public class OrderDao extends GenericDao<Order, Long> implements IOrderDao {
+public class OrderDao implements IOrderDao {
+
+    private Connection con;
 
     public OrderDao(Connection con) {
-        super(con, "order", "orderId");
+        this.con = con;
     }
 
     @Override
@@ -35,51 +38,38 @@ public class OrderDao extends GenericDao<Order, Long> implements IOrderDao {
         /**
          * sql lekérdezés
          *
-         * \"USERNAME\".\"order\" => adatbázis.táblanév,
-         * ? => paraméter
+         * \"USERNAME\".\"order\" => adatbázis.táblanév, ? => paraméter
          */
         String sql = "DELETE FROM \"USERNAME\".\"order\" WHERE orderId = ?";
-        
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = con.prepareStatement(sql);
 
+        //try-with-resources try-catch-finally helyett lásd effective java item 9
+        try (PreparedStatement statement = con.prepareStatement(sql)) {
             //paraméter beállítása
             statement.setLong(1, key);
 
             //.executeUpdate() => SQL Data Manipulation Language (DML) (Update, Insert, Delete) típusú lekérdezés végrehajtása.
             statement.executeUpdate();
         } catch (SQLException ex) {
-            Logger.getLogger(GenericDao.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            //statement és resultset lezárása
-            close(statement, resultSet);
+            Logger.getLogger(OrderDao.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     @Override
     public List<Order> findAll() {
         String sql = "SELECT * FROM \"USERNAME\".\"order\"";
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = con.prepareStatement(sql);
 
-            //.executeQuery => sql leérdezés végrehajtása, egy resultSet objektummal tér vissza
-            resultSet = statement.executeQuery();
-            
+        //try-with-resources try-catch-finally helyett lásd effective java item 9
+        //.executeQuery => sql leérdezés végrehajtása, egy resultSet objektummal tér vissza
+        try (PreparedStatement statement = con.prepareStatement(sql);
+                ResultSet resultSet = statement.executeQuery();) {
             //resultSet feldolgozása
             List<Order> result = new LinkedList<>();
             while (resultSet.next()) {
                 result.add(setOrder(resultSet));
             }
             return result;
-            
         } catch (SQLException ex) {
             Logger.getLogger(OrderDao.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            close(statement, resultSet);
         }
         return null;
     }
@@ -87,13 +77,9 @@ public class OrderDao extends GenericDao<Order, Long> implements IOrderDao {
     @Override
     public Order findById(Long key) {
         String sql = "SELECT * FROM \"USERNAME\".\"order\" WHERE orderId = ?";
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = con.prepareStatement(sql);
-            statement.setLong(1, key);
+        try (PreparedStatement statement = createPreparedStatement(con, sql, key);
+                ResultSet resultSet = statement.executeQuery();) {
 
-            resultSet = statement.executeQuery();
             List<Order> result = new LinkedList<>();
             while (resultSet.next()) {
                 result.add(setOrder(resultSet));
@@ -101,17 +87,16 @@ public class OrderDao extends GenericDao<Order, Long> implements IOrderDao {
             return result.get(0);
         } catch (SQLException ex) {
             Logger.getLogger(OrderDao.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            close(statement, resultSet);
         }
         return null;
     }
 
     /**
      * resultSet alapján egy új Order objektum létrehozása
+     *
      * @param resultSet
      * @return
-     * @throws SQLException 
+     * @throws SQLException
      */
     private Order setOrder(ResultSet resultSet) throws SQLException {
         Order order = new Order();
@@ -126,13 +111,9 @@ public class OrderDao extends GenericDao<Order, Long> implements IOrderDao {
     @Override
     public List<OrderLine> findOrderLinesByOrderId(long key) {
         String sql = "SELECT * FROM \"USERNAME\".\"orderLine\" WHERE orderId = ?";
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = con.prepareStatement(sql);
-            statement.setLong(1, key);
+        try (PreparedStatement statement = createPreparedStatement(con, sql, key);
+                ResultSet resultSet = statement.executeQuery();) {
 
-            resultSet = statement.executeQuery();
             List<OrderLine> result = new LinkedList<>();
             while (resultSet.next()) {
                 result.add(setOrderLine(resultSet));
@@ -140,18 +121,16 @@ public class OrderDao extends GenericDao<Order, Long> implements IOrderDao {
             return result;
         } catch (SQLException ex) {
             Logger.getLogger(OrderDao.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            close(statement, resultSet);
         }
         return null;
     }
 
     /**
      * resultSet alapján egy új OrderLine objektum létrehozása
-     * 
+     *
      * @param resultSet
      * @return
-     * @throws SQLException 
+     * @throws SQLException
      */
     private OrderLine setOrderLine(ResultSet resultSet) throws SQLException {
         OrderLine orderLine = new OrderLine();
@@ -166,22 +145,9 @@ public class OrderDao extends GenericDao<Order, Long> implements IOrderDao {
     @Override
     public Order save(Order entity) {
         String sql = "INSERT INTO \"USERNAME\".\"order\" (retailerName, orderDate, orderPrice, status) VALUES (?, ?, ?, ?)";
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            
-            //Statement.RETURN_GENERATED_KEYS => beállítjuk, hogy a generált kulcs visszakérhető legyen
-            statement = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            
-            statement.setString(1, entity.getRetailerName());
-            statement.setDate(2, new java.sql.Date(entity.getOrderDate().getTime()));
-            statement.setBigDecimal(3, entity.getOrderPrice());
-            statement.setString(4, entity.getStatus().name());
+        try (PreparedStatement statement = createPreparedStatementForSave(con, sql, entity);
+                ResultSet generatedKeys = statement.getGeneratedKeys();) {
 
-            statement.executeUpdate();
-
-            //generált kulcs lekérése
-            ResultSet generatedKeys = statement.getGeneratedKeys();
             if (generatedKeys.next()) {
                 entity.setOrderId(generatedKeys.getLong(1));
                 return entity;
@@ -190,8 +156,6 @@ public class OrderDao extends GenericDao<Order, Long> implements IOrderDao {
             }
         } catch (SQLException ex) {
             Logger.getLogger(OrderDao.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            close(statement, resultSet);
         }
         return null;
     }
@@ -199,32 +163,19 @@ public class OrderDao extends GenericDao<Order, Long> implements IOrderDao {
     @Override
     public void update(Order entity) {
         String sql = "UPDATE \"USERNAME\".\"order\" SET orderPrice=?, status=? WHERE orderId=?";
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = con.prepareStatement(sql);
-            statement.setBigDecimal(1, entity.getOrderPrice());
-            statement.setString(2, entity.getStatus().name());
-            statement.setLong(3, entity.getOrderId());
+        try (PreparedStatement statement = createPreparedStatementForUpdate(con, sql, entity);) {
             statement.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(OrderDao.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            close(statement, resultSet);
         }
     }
 
     @Override
     public List<Order> findOrdersWithUnderDeliveryOrWaitingForDeliveryStatus() {
         String sql = "SELECT * FROM \"USERNAME\".\"order\" WHERE status=? or status=?";
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = con.prepareStatement(sql);
-            statement.setString(1, OrderStatus.UNDER_DELIVERY.name());
-            statement.setString(2, OrderStatus.WAITING_FOR_DELIVERY.name());
+        try (PreparedStatement statement = createPreparedStatementForStatusFilter(con, sql);
+                ResultSet resultSet = statement.executeQuery();) {
 
-            resultSet = statement.executeQuery();
             List<Order> result = new LinkedList<>();
             while (resultSet.next()) {
                 result.add(setOrder(resultSet));
@@ -232,29 +183,54 @@ public class OrderDao extends GenericDao<Order, Long> implements IOrderDao {
             return result;
         } catch (SQLException ex) {
             Logger.getLogger(OrderDao.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            close(statement, resultSet);
         }
         return null;
     }
 
-    /**
-     * statement, és resultSet lezárása
-     * 
-     * @param statement
-     * @param resultSet 
-     */
-    private void close(PreparedStatement statement, ResultSet resultSet) {
-        try {
-            if (!(statement == null || statement.isClosed())) {
-                statement.close();
-            }
-            if (!(resultSet == null || resultSet.isClosed())) {
-                resultSet.close();
-            }
-        } catch (SQLException ex) {
-            Logger.getLogger(RetailerDao.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    private PreparedStatement createPreparedStatement(Connection con, String sql, Long key) throws SQLException {
+        PreparedStatement statement = con.prepareStatement(sql);
+
+        statement.setLong(1, key);
+
+        return statement;
+    }
+
+    private PreparedStatement createPreparedStatementForSave(Connection con, String sql, Order entity) throws SQLException {
+        //Statement.RETURN_GENERATED_KEYS => beállítjuk, hogy a generált kulcs visszakérhető legyen
+        PreparedStatement statement = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+
+        statement.setString(1, entity.getRetailerName());
+        statement.setDate(2, new java.sql.Date(entity.getOrderDate().getTime()));
+        statement.setBigDecimal(3, entity.getOrderPrice());
+        statement.setString(4, entity.getStatus().name());
+
+        statement.executeUpdate();
+
+        return statement;
+    }
+
+    private PreparedStatement createPreparedStatementForUpdate(Connection con, String sql, Order entity) throws SQLException {
+        PreparedStatement statement = con.prepareStatement(sql);
+
+        statement.setBigDecimal(1, entity.getOrderPrice());
+        statement.setString(2, entity.getStatus().name());
+        statement.setLong(3, entity.getOrderId());
+
+        return statement;
+    }
+
+    private PreparedStatement createPreparedStatementForStatusFilter(Connection con, String sql) throws SQLException {
+        PreparedStatement statement = con.prepareStatement(sql);
+
+        statement.setString(1, OrderStatus.UNDER_DELIVERY.name());
+        statement.setString(2, OrderStatus.WAITING_FOR_DELIVERY.name());
+
+        return statement;
+    }
+
+    @Override
+    public void setCon(Connection con) {
+        this.con = con;
     }
 
 }

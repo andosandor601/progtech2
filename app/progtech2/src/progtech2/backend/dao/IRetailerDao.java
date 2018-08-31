@@ -7,13 +7,14 @@ package progtech2.backend.dao;
 
 import java.util.List;
 import progtech2.backend.entities.Order;
+import progtech2.backend.entities.Retailer;
 
 /**
  * Kereskedőhöz tartozó Dao Interfész
  *
  * @author Andó Sándor Zsolt
  */
-public interface IRetailerDao {
+public interface IRetailerDao extends ICRUDDao<Retailer, String>{
 
     /**
      * A megadott kulcsú kereskedő rendeléseinek listázása

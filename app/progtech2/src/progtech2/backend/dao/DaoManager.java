@@ -31,10 +31,10 @@ public class DaoManager {
     private Connection con;
 
     /** A feladatban használt dao osztályok */
-    private ProductDao pDao;
-    private RetailerDao rDao;
-    private OrderDao oDao;
-    private OrderLineDao olDao;
+    private IProductDao pDao;
+    private IRetailerDao rDao;
+    private IOrderDao oDao;
+    private IOrderLineDao olDao;
 
     public DaoManager() {
         this.oDao = new OrderDao(con);

@@ -16,58 +16,49 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import progtech2.backend.entities.OrderLine;
 import progtech2.backend.entities.Product;
-import progtech2.backend.entities.Retailer;
 
 /**
- * OrderLineDao osztály, A rendeléssorokkal kapcsolatos adatbázis műveletek végrehajtásáért felel.
- * 
+ * OrderLineDao osztály, A rendeléssorokkal kapcsolatos adatbázis műveletek
+ * végrehajtásáért felel.
+ *
  * @author <Andó Sándor Zsolt>
  */
-public class OrderLineDao extends GenericDao<OrderLine, Long> implements IOrderLineDao {
+public class OrderLineDao implements IOrderLineDao {
+
+    private Connection con;
 
     public OrderLineDao(Connection con) {
-        super(con, "orderline", "orderLineId");
+        this.con = con;
     }
-    
+
     @Override
     public void delete(Long key) {
-        
+
         /**
          * sql lekérdezés
          *
-         * \"USERNAME\".\"orderLine\" => adatbázis.táblanév,
-         * ? => paraméter
+         * \"USERNAME\".\"orderLine\" => adatbázis.táblanév, ? => paraméter
          */
         String sql = "DELETE FROM \"USERNAME\".\"orderLine\" WHERE orderLineId = ?";
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = con.prepareStatement(sql);
-            
+        //try-with-resources try-catch-finally helyett lásd effective java item 9
+        try (PreparedStatement statement = con.prepareStatement(sql)) {
             //paraméter beállítása
             statement.setLong(1, key);
 
             //.executeUpdate() => SQL Data Manipulation Language (DML) (Update, Insert, Delete) típusú lekérdezés végrehajtása.
             statement.executeUpdate();
         } catch (SQLException ex) {
-            Logger.getLogger(GenericDao.class.getName()).log(Level.SEVERE, null, ex);
-        }finally{
-            //statement és resultset lezárása
-            close(statement, resultSet);
+            Logger.getLogger(OrderDao.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     @Override
     public List<OrderLine> findAll() {
         String sql = "SELECT * FROM \"USERNAME\".\"orderLine\"";
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = con.prepareStatement(sql);
-
-            //.executeQuery => sql leérdezés végrehajtása, egy resultSet objektummal tér vissza
-            resultSet = statement.executeQuery();
-            
+        //try-with-resources try-catch-finally helyett lásd effective java item 9
+        //.executeQuery => sql leérdezés végrehajtása, egy resultSet objektummal tér vissza
+        try (PreparedStatement statement = con.prepareStatement(sql);
+                ResultSet resultSet = statement.executeQuery();) {
             //resultSet feldolgozása
             List<OrderLine> result = new LinkedList<>();
             while (resultSet.next()) {
@@ -76,8 +67,6 @@ public class OrderLineDao extends GenericDao<OrderLine, Long> implements IOrderL
             return result;
         } catch (SQLException ex) {
             Logger.getLogger(OrderDao.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            close(statement, resultSet);
         }
         return null;
     }
@@ -85,13 +74,9 @@ public class OrderLineDao extends GenericDao<OrderLine, Long> implements IOrderL
     @Override
     public OrderLine findById(Long key) {
         String sql = "SELECT * FROM \"USERNAME\".\"orderLine\" WHERE orderLineId = ?";
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = con.prepareStatement(sql);
-            statement.setLong(1, key);
+        try (PreparedStatement statement = createPreparedStatement(con, sql, key);
+                ResultSet resultSet = statement.executeQuery();) {
 
-            resultSet = statement.executeQuery();
             List<OrderLine> result = new LinkedList<>();
             while (resultSet.next()) {
                 result.add(setOrderLine(resultSet));
@@ -99,18 +84,16 @@ public class OrderLineDao extends GenericDao<OrderLine, Long> implements IOrderL
             return result.get(0);
         } catch (SQLException ex) {
             Logger.getLogger(OrderDao.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            close(statement, resultSet);
         }
         return null;
     }
 
     /**
      * resultSet alapján egy új OrderLine objektum létrehozása
-     * 
+     *
      * @param resultSet
      * @return
-     * @throws SQLException 
+     * @throws SQLException
      */
     private OrderLine setOrderLine(ResultSet resultSet) throws SQLException {
         OrderLine orderLine = new OrderLine();
@@ -125,20 +108,11 @@ public class OrderLineDao extends GenericDao<OrderLine, Long> implements IOrderL
     @Override
     public OrderLine save(OrderLine entity) {
         String sql = "INSERT INTO \"USERNAME\".\"orderLine\" (orderId, price, productName, quantity) VALUES (?, ?, ?, ?)";
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            
-            //Statement.RETURN_GENERATED_KEYS => beállítjuk, hogy a generált kulcs visszakérhető legyen
-            statement = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            statement.setLong(1, entity.getOrderId());
-            statement.setBigDecimal(2, entity.getPrice());
-            statement.setString(3, entity.getProduct());
-            statement.setInt(4, entity.getQuantity());
-            statement.executeUpdate();
 
-            //generált kulcs lekérése
-            ResultSet generatedKeys = statement.getGeneratedKeys();
+        //statement.getGeneratedKeys(); generált kulcs lekérése
+        try (PreparedStatement statement = createPreparedStatementForSave(con, sql, entity);
+                ResultSet generatedKeys = statement.executeQuery();) {
+
             if (generatedKeys.next()) {
                 entity.setOrderLineId(generatedKeys.getLong(1));
                 return entity;
@@ -147,8 +121,6 @@ public class OrderLineDao extends GenericDao<OrderLine, Long> implements IOrderL
             }
         } catch (SQLException ex) {
             Logger.getLogger(OrderDao.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            close(statement, resultSet);
         }
         return null;
     }
@@ -156,30 +128,19 @@ public class OrderLineDao extends GenericDao<OrderLine, Long> implements IOrderL
     @Override
     public void update(OrderLine entity) {
         String sql = "UPDATE \"USERNAME\".\"orderLine\" SET quantity=? WHERE orderLineId=?";
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = con.prepareStatement(sql);
-            statement.setInt(1, entity.getQuantity());
-            statement.setLong(2, entity.getOrderLineId());
+        try (PreparedStatement statement = createPreparedStatementForUpdate(con, sql, entity);) {
             statement.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(OrderDao.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            close(statement, resultSet);
         }
     }
 
     @Override
     public Product findProductByOrderLineId(long key) {
         String sql = "SELECT * FROM \"USERNAME\".\"product\" WHERE productName = (SELECT productName FROM \"USERNAME\".\"orderLine\" WHERE orderLineId=?)";
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        try {
-            statement = con.prepareStatement(sql);
-            statement.setLong(1, key);
-
-            resultSet = statement.executeQuery();
+        try (PreparedStatement statement = createPreparedStatement(con, sql, key);
+                ResultSet resultSet = statement.executeQuery();){
+            
             List<Product> result = new LinkedList<>();
             while (resultSet.next()) {
                 result.add(setProduct(resultSet));
@@ -187,18 +148,16 @@ public class OrderLineDao extends GenericDao<OrderLine, Long> implements IOrderL
             return result.get(0);
         } catch (SQLException ex) {
             Logger.getLogger(OrderDao.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            close(statement, resultSet);
         }
         return null;
     }
 
     /**
      * Product létrehozása a resultSet alapján
-     * 
+     *
      * @param resultSet
      * @return
-     * @throws SQLException 
+     * @throws SQLException
      */
     private Product setProduct(ResultSet resultSet) throws SQLException {
         Product product = new Product();
@@ -210,9 +169,9 @@ public class OrderLineDao extends GenericDao<OrderLine, Long> implements IOrderL
 
     /**
      * statement, és resultSet lezárása
-     * 
+     *
      * @param statement
-     * @param resultSet 
+     * @param resultSet
      */
     private void close(PreparedStatement statement, ResultSet resultSet) {
         try {
@@ -227,4 +186,38 @@ public class OrderLineDao extends GenericDao<OrderLine, Long> implements IOrderL
         }
     }
 
+    private PreparedStatement createPreparedStatement(Connection con, String sql, Long key) throws SQLException {
+        PreparedStatement statement = con.prepareStatement(sql);
+
+        statement.setLong(1, key);
+
+        return statement;
+    }
+
+    private PreparedStatement createPreparedStatementForSave(Connection con, String sql, OrderLine entity) throws SQLException {
+        //Statement.RETURN_GENERATED_KEYS => beállítjuk, hogy a generált kulcs visszakérhető legyen
+        PreparedStatement statement = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        
+        statement.setLong(1, entity.getOrderId());
+        statement.setBigDecimal(2, entity.getPrice());
+        statement.setString(3, entity.getProduct());
+        statement.setInt(4, entity.getQuantity());
+        statement.executeUpdate();
+
+        return statement;
+    }
+
+    private PreparedStatement createPreparedStatementForUpdate(Connection con, String sql, OrderLine entity) throws SQLException {
+        PreparedStatement statement = con.prepareStatement(sql);
+        
+        statement.setInt(1, entity.getQuantity());
+        statement.setLong(2, entity.getOrderLineId());
+        
+        return statement;
+    }
+    
+    @Override
+    public void setCon(Connection con) {
+        this.con = con;
+    }
 }
