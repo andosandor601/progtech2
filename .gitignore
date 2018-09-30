@@ -1,3 +1,7 @@
 /app/progtech2/build/
 /app/progtech2/dist/
 app/progtech2/nbproject/private/
+*.classpath
+*.project
+SOLID/.settings/
+SOLID/bin/
