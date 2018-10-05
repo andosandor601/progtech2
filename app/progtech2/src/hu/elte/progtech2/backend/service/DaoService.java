@@ -15,6 +15,7 @@ import hu.elte.progtech2.backend.entities.Product;
 import hu.elte.progtech2.backend.entities.Retailer;
 import hu.elte.progtech2.backend.enums.OrderStatus;
 import hu.elte.progtech2.backend.service.exceptions.ServiceException;
+import java.time.LocalDate;
 
 /**
  *
@@ -28,7 +29,7 @@ public class DaoService implements Service {
     public void addOrder(String retailerName, List<OrderLine> orderLines) throws ServiceException {
         Order order = new Order();
         Retailer retailer = dm.findRetailer(retailerName);
-        order.setOrderDate(Calendar.getInstance().getTime());
+        order.setOrderDate(LocalDate.now());
         order.setStatus(OrderStatus.WAITING_FOR_DELIVERY);
         order.setOrderPrice(sumOrderLines(orderLines));
         order.setRetailerName(retailer.getName());

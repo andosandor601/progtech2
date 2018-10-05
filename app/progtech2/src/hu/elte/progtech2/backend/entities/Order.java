@@ -6,8 +6,8 @@
 package hu.elte.progtech2.backend.entities;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import hu.elte.progtech2.backend.enums.OrderStatus;
+import java.time.LocalDate;
 
 /**
  *
@@ -15,17 +15,17 @@ import hu.elte.progtech2.backend.enums.OrderStatus;
  */
 public class Order {
     
-    private Date orderDate;
+    private LocalDate orderDate;
     private long orderId;
     private BigDecimal orderPrice;
     private OrderStatus status;
     private String retailerName;
 
-    public Date getOrderDate() {
+    public LocalDate getOrderDate() {
         return orderDate;
     }
 
-    public void setOrderDate(Date orderDate) {
+    public void setOrderDate(LocalDate orderDate) {
         this.orderDate = orderDate;
     }
 

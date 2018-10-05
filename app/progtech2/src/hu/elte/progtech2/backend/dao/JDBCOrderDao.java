@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 import hu.elte.progtech2.backend.entities.Order;
 import hu.elte.progtech2.backend.entities.OrderLine;
 import hu.elte.progtech2.backend.enums.OrderStatus;
+import java.time.LocalDateTime;
 
 /**
  * JDBCOrderDao osztály, A rendelésekkel kapcsolatos adatbázis műveletek
@@ -101,7 +102,7 @@ public class JDBCOrderDao implements OrderDao {
     private Order setOrder(ResultSet resultSet) throws SQLException {
         Order order = new Order();
         order.setOrderId(resultSet.getLong("orderId"));
-        order.setOrderDate(resultSet.getDate("orderDate"));
+        order.setOrderDate(resultSet.getDate("orderDate").toLocalDate());
         order.setOrderPrice(resultSet.getBigDecimal("orderPrice"));
         order.setStatus(OrderStatus.valueOf(resultSet.getString("status")));
         order.setRetailerName(resultSet.getString("retailerName"));
@@ -200,7 +201,7 @@ public class JDBCOrderDao implements OrderDao {
         PreparedStatement statement = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
         statement.setString(1, entity.getRetailerName());
-        statement.setDate(2, new java.sql.Date(entity.getOrderDate().getTime()));
+        statement.setDate(2, java.sql.Date.valueOf((entity.getOrderDate())));
         statement.setBigDecimal(3, entity.getOrderPrice());
         statement.setString(4, entity.getStatus().name());
 

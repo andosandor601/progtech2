@@ -163,7 +163,7 @@ public class JDBCRetailerDao implements RetailerDao {
     private Order setOrder(ResultSet resultSet) throws SQLException {
         Order order = new Order();
         order.setOrderId(resultSet.getLong("orderId"));
-        order.setOrderDate(resultSet.getDate("orderDate"));
+        order.setOrderDate(resultSet.getDate("orderDate").toLocalDate());
         order.setOrderPrice(resultSet.getBigDecimal("orderPrice"));
         order.setStatus(OrderStatus.valueOf(resultSet.getString("status")));
         order.setRetailerName(resultSet.getString("retailerName"));
