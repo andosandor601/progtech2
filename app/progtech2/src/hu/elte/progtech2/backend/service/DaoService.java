@@ -101,7 +101,7 @@ public class DaoService implements Service {
         OrderLine orderLine = dm.findOrderLine(orderLineId);
         long orderId = orderLine.getOrderId();
         Order order = dm.findOrder(orderLine.getOrderId());
-        if (!order.getStatus().equals(OrderStatus.READY)) {
+        if (!order.getStatus().equals(OrderStatus.COMPLETED)) {
             returnOrderedProductToStock(orderLine);
         }      
         dm.deleteOrderLine(orderLineId);

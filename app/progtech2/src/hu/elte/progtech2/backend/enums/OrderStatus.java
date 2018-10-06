@@ -10,5 +10,5 @@ package hu.elte.progtech2.backend.enums;
  * @author Dell
  */
 public enum OrderStatus {
-    READY, UNDER_DELIVERY, WAITING_FOR_DELIVERY;
+    COMPLETED, UNDER_DELIVERY, WAITING_FOR_DELIVERY;
 }
