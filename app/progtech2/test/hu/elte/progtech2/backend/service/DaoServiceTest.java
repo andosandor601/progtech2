@@ -5,6 +5,7 @@
  */
 package hu.elte.progtech2.backend.service;
 
+import hu.elte.progtech2.backend.dao.DaoManager;
 import hu.elte.progtech2.backend.service.DaoService;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -19,7 +20,16 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import hu.elte.progtech2.backend.entities.Order;
 import hu.elte.progtech2.backend.entities.OrderLine;
+import hu.elte.progtech2.backend.entities.Product;
+import hu.elte.progtech2.backend.entities.Retailer;
+import hu.elte.progtech2.backend.enums.OrderStatus;
 import hu.elte.progtech2.backend.service.exceptions.ServiceException;
+import org.mockito.ArgumentMatchers;
+import org.mockito.BDDMockito;
+import org.mockito.Mock;
+import static org.mockito.Mockito.times;
+import org.mockito.MockitoAnnotations;
+import org.mockito.internal.util.reflection.FieldSetter;
 
 /**
  * DaoServiceTest
@@ -28,15 +38,21 @@ import hu.elte.progtech2.backend.service.exceptions.ServiceException;
  */
 public class DaoServiceTest {
 
-    static String productName, retailerName, address, phone;
-    static BigDecimal productPrice, creditLine;
-    static int productStock, orderQuantity1, orderQuantity2, orderQuantity3;
-    static DaoService instance;
-    static List<OrderLine> orderLines;
-    static OrderLine orderline1, orderline2, orderline3;
-
     @Rule
     public final ExpectedException exception = ExpectedException.none();
+
+    private DaoService underTest = new DaoService();
+
+    @Mock
+    private DaoManager daoManager;
+
+    private static OrderLine orderLine1 = new OrderLine();
+    private static OrderLine orderLine2 = new OrderLine();
+    private static Product product1 = new Product();
+    private static Product product2 = new Product();
+    private static Order order1 = new Order();
+    private static Retailer retailer1 = new Retailer();
+    private static Retailer retailer2 = new Retailer();
 
     /**
      * A teszt osztály lefutása előtt kerül végrehajtásra, inicializálás
@@ -45,26 +61,36 @@ public class DaoServiceTest {
      */
     @BeforeClass
     public static void setUpClass() throws Exception {
-        instance = new DaoService();
+        initProducts();
+        initRetailers();
+        initOrders();
+        initOrderLines();
+    }
 
-        productName = "testProduct";
-        productPrice = new BigDecimal(10);
-        productStock = 55;
+    private static void initProducts() {
+        product1.setProductName("Tejcsi");
+        product1.setPrice(BigDecimal.TEN);
+        product1.setStock(10);
+        product2.setProductName("KÁVÉ");
+        product2.setPrice(BigDecimal.TEN);
+        product2.setStock(20);
+    }
 
-        retailerName = "testRetailer";
-        address = "testAddress";
-        creditLine = new BigDecimal(100);
-        phone = "testPhone";
+    private static void initRetailers() {
+        retailer1.setName("BESTCOMPANY");
+        retailer1.setCreditLine(new BigDecimal(100));
+    }
 
-        orderQuantity1 = 1;
-        orderQuantity2 = 11;
-        orderQuantity3 = productStock + 1;
+    private static void initOrders() {
+        order1.setStatus(OrderStatus.COMPLETED);
+    }
 
-        createOrderLines();
-
-        orderLines = new ArrayList<>();
-        instance.addRetailer(retailerName, address, creditLine, phone);
-        instance.addProduct(productName, productPrice, productStock);
+    private static void initOrderLines() {
+        orderLine1.setPrice(BigDecimal.TEN);
+        orderLine1.setQuantity(15);
+        orderLine1.setOrderLineId(1);
+        orderLine2.setPrice(new BigDecimal(101));
+        orderLine2.setQuantity(15);
     }
 
     /**
@@ -74,30 +100,6 @@ public class DaoServiceTest {
      */
     @AfterClass
     public static void tearDownClass() throws Exception {
-        instance.listOrdersByRetailer(retailerName).forEach(order -> {
-            instance.deleteOrder(order.getOrderId());
-        });
-
-        instance.deleteProduct(productName);
-        instance.deleteRetailer(retailerName);
-    }
-
-    private static void createOrderLines() {
-        orderline1 = new OrderLine();
-        orderline2 = new OrderLine();
-        orderline3 = new OrderLine();
-
-        orderline1.setProduct(productName);
-        orderline1.setQuantity(orderQuantity1);
-        orderline1.setPrice(productPrice.multiply(new BigDecimal(orderQuantity1)));
-
-        orderline2.setProduct(productName);
-        orderline2.setQuantity(orderQuantity2);
-        orderline2.setPrice(productPrice.multiply(new BigDecimal(orderQuantity2)));
-
-        orderline3.setProduct(productName);
-        orderline3.setQuantity(orderQuantity3);
-        orderline3.setPrice(productPrice.multiply(new BigDecimal(orderQuantity3)));
     }
 
     /**
@@ -107,7 +109,14 @@ public class DaoServiceTest {
      */
     @Before
     public void setUp() throws Exception {
-        orderLines.clear();
+        /*
+        * Megkeresi az összes annotált mezőt a tesztosztályban, majd létrehozza a mock-objecteket
+         */
+        MockitoAnnotations.initMocks(this);
+        /*
+        Beállítjuk, hogy a mock object-et használja a tesztelt osztályunk
+         */
+        FieldSetter.setField(underTest, underTest.getClass().getDeclaredField("dm"), daoManager);
     }
 
     /**
@@ -120,52 +129,63 @@ public class DaoServiceTest {
     }
 
     /**
-     * A DaoService osztály addOrder metódusának tesztelése, olyan rendeléssel, ami
- több darabra szól, mint amennyi az adott termékből a raktáron taálható.
+     * A DaoService osztály addOrder metódusának tesztelése, olyan rendeléssel,
+     * ami több darabra szól, mint amennyi az adott termékből a raktáron
+     * taálható.
      */
     @Test
     public void testAddOrderWithHigherOrderQuantityThanProductsStock() throws ServiceException {
-        System.out.println("addOrder");
-        orderLines.add(orderline3);
-
-        //exception tesztelése
+        //GIVEN
+        List<OrderLine> orderLines = new ArrayList<>();
+        orderLines.add(orderLine1);
+        BDDMockito.given(daoManager.findRetailer(retailer1.getName())).willReturn(retailer1);
+        BDDMockito.given(daoManager.findProduct(orderLine1.getProduct())).willReturn(product1);
+        //WHEN
         exception.expect(ServiceException.class);
-        instance.addOrder(retailerName, orderLines);
+        //exception tesztelése
+        underTest.addOrder(retailer1.getName(), orderLines);
+        //THEN
     }
 
     /**
-     * A DaoService osztály addOrder metódusának tesztelése, olyan rendeléssel, ami
- drágább, mint amennyi az adott kereskedő hitelkerete.
+     * A DaoService osztály addOrder metódusának tesztelése, olyan rendeléssel,
+     * ami drágább, mint amennyi az adott kereskedő hitelkerete.
      *
      * @throws ServiceException
      */
     @Test
     public void testAddOrderWithHigherOrderPriceThanRetailersCreditline() throws ServiceException {
-        System.out.println("addOrder");
-        orderLines.add(orderline2);
-
+        //GIVEN
+        List<OrderLine> orderLines = new ArrayList<>();
+        orderLines.add(orderLine2);
+        BDDMockito.given(daoManager.findRetailer(retailer1.getName())).willReturn(retailer1);
+        BDDMockito.given(daoManager.findProduct(orderLine2.getProduct())).willReturn(product1);
+        //WHEN
         exception.expect(ServiceException.class);
-        instance.addOrder(retailerName, orderLines);
+        //exception tesztelése
+        underTest.addOrder(retailer1.getName(), orderLines);
+        //THEN
     }
 
     /**
-     * A DaoService osztály addOrder metódusának tesztelése, olyan rendeléssel, ami
- várhatóan megfelel a feladat követelményeinek.
+     * A DaoService osztály addOrder metódusának tesztelése, olyan rendeléssel,
+     * ami várhatóan megfelel a feladat követelményeinek.
      *
      * @throws Exception
      */
     @Test
     public void testAddOrderWithCorrectValues() throws Exception {
-        System.out.println("addOrder");
-        orderLines.add(orderline1);
-
-        int preQuantity = instance.findProduct(productName).getStock();
-
-        instance.addOrder(retailerName, orderLines);
-
-        int postQuantity = instance.findProduct(productName).getStock();
-
-        assertEquals("Nem írta át a raktáron levő termék mennyiségét", preQuantity - orderline1.getQuantity(), postQuantity);
+        //GIVEN
+        List<OrderLine> orderLines = new ArrayList<>();
+        orderLines.add(orderLine1);
+        BDDMockito.given(daoManager.findRetailer(retailer1.getName())).willReturn(retailer1);
+        BDDMockito.given(daoManager.findProduct(orderLine1.getProduct())).willReturn(product2);
+        BDDMockito.given(daoManager.findProduct("KÁVÉ")).willReturn(product2);
+        //WHEN
+        underTest.addOrder(retailer1.getName(), orderLines);
+        //THEN
+        assertEquals("Nem írta át a raktáron levő termék mennyiségét", 5, product2.getStock());
+        BDDMockito.verify(daoManager).saveOrder(BDDMockito.any(Order.class), BDDMockito.eq(orderLines));
     }
 
     /**
@@ -173,27 +193,14 @@ public class DaoServiceTest {
      */
     @Test
     public void testDeleteOrder() throws ServiceException {
-        System.out.println("deleteOrder");
-        orderLines.add(orderline1);
-        orderLines.add(orderline1);
-
-        //A leadott rendelés összesített darabszáma egy termékre vonatkozóan
-        int sumQuantity = orderline1.getQuantity() * 2;
-
-        instance.addOrder(retailerName, orderLines);
-
-        instance.listOrdersByRetailer(retailerName).forEach(order -> {
-            List<OrderLine> testOrderLines = instance.listOrderLines(order.getOrderId());
-            if (testOrderLines.size() > 1) {
-                int preQuantity = instance.findProduct(productName).getStock();
-
-                instance.deleteOrder(order.getOrderId());
-
-                int postQuantity = instance.findProduct(productName).getStock();
-
-                assertEquals("Nem került vissza a raktárba a termék mennyisége a rendelés törlése után", preQuantity + sumQuantity, postQuantity);
-            }
-        });
+        //GIVEN
+        List<OrderLine> orderLines = new ArrayList<>();
+        orderLines.add(orderLine1);
+        BDDMockito.given(daoManager.findOrderLinesByOrderId(BDDMockito.anyInt())).willReturn(orderLines);
+        //WHEN
+        underTest.deleteOrder(1);
+        //THEN
+        BDDMockito.verify(daoManager).deleteOrder(1);
     }
 
     /**
@@ -201,34 +208,200 @@ public class DaoServiceTest {
      */
     @Test
     public void testDeleteOrderLine() throws ServiceException {
-        System.out.println("deleteOrderLine");
-        orderLines.add(orderline1);
-        orderLines.add(orderline1);
+        //GIVEN
+        List<OrderLine> orderLines = new ArrayList<>();
+        orderLines.add(orderLine1);
+        BDDMockito.given(daoManager.findOrderLine(BDDMockito.anyLong())).willReturn(orderLine1);
+        BDDMockito.given(daoManager.findOrder(BDDMockito.anyLong())).willReturn(order1);
+        BDDMockito.given(daoManager.findProduct(BDDMockito.any())).willReturn(product1);
+        //WHEN
+        underTest.deleteOrderLine(orderLine1.getOrderLineId());
+        //THEN
+        BDDMockito.verify(daoManager).deleteOrderLine(orderLine1.getOrderLineId());
+    }
 
-        instance.addOrder(retailerName, orderLines);
+    /**
+     * Test of addProduct method, of class DaoService.
+     */
+    @Test
+    public void testAddProduct() {
+        //GIVEN
+        //WHEN
+        underTest.addProduct("name", BigDecimal.ONE, 10);
+        //THEN
+        BDDMockito.verify(daoManager).saveProduct(BDDMockito.any(Product.class));
+    }
 
-        instance.listOrdersByRetailer(retailerName).forEach(order -> {
-            List<OrderLine> testOrderLines = instance.listOrderLines(order.getOrderId());
-            if (testOrderLines.size() > 1) {
-                BigDecimal orderPrice = order.getOrderPrice();
-                OrderLine testOrderLine = testOrderLines.get(0);
+    /**
+     * Test of addRetailer method, of class DaoService.
+     */
+    @Test
+    public void testAddRetailer() {
+        //GIVEN
+        //WHEN
+        underTest.addRetailer("KFT", "asdas", BigDecimal.ONE, "asdasf");
+        //THEN
+        BDDMockito.verify(daoManager).saveRetailer(BDDMockito.any(Retailer.class));
+    }
 
-                int preQuantity = instance.findProduct(testOrderLine.getProduct()).getStock();
-                int testOrderLineQuantity = testOrderLine.getQuantity();
+    /**
+     * Test of deleteProduct method, of class DaoService.
+     */
+    @Test
+    public void testDeleteProduct() throws Exception {
+        //GIVEN
+        //WHEN
+        underTest.deleteProduct("tejbepapi");
+        //THEN
+        BDDMockito.verify(daoManager).deleteProduct("tejbepapi");
+    }
 
-                instance.deleteOrderLine(testOrderLine.getOrderLineId());
+    /**
+     * Test of deleteRetailer method, of class DaoService.
+     */
+    @Test
+    public void testDeleteRetailer() throws Exception {
+        //GIVEN
+        //WHEN
+        underTest.deleteRetailer("tejbepapigyár");
+        //THEN
+        BDDMockito.verify(daoManager).deleteRetailer("tejbepapigyár");
+    }
 
-                int postQuantity = instance.findProduct(testOrderLine.getProduct()).getStock();
+    /**
+     * Test of listNotDeliveredOrders method, of class DaoService.
+     */
+    @Test
+    public void testListNotDeliveredOrders() {
+        //GIVEN
+        //WHEN
+        underTest.listNotDeliveredOrders();
+        //THEN
+        BDDMockito.verify(daoManager).listNotDeliveredOrders();
+    }
 
-                assertEquals("Nem került vissza a raktárba a termék mennyisége a rendeléssor törlése után", preQuantity + testOrderLineQuantity, postQuantity);
+    /**
+     * Test of listOrderLines method, of class DaoService.
+     */
+    @Test
+    public void testListOrderLines() {
+        //GIVEN
+        //WHEN
+        underTest.listOrderLines(10);
+        //THEN
+        BDDMockito.verify(daoManager).listOrderLines(BDDMockito.anyLong());
+    }
 
-                List<Order> orders = instance.listOrdersByRetailer(retailerName);
-                for (Order order1 : orders) {
-                    if (order1.getOrderId() == order.getOrderId()) {
-                        assertEquals("Nem csökkent a rendelés értéke", orderPrice.subtract(testOrderLine.getPrice()), order1.getOrderPrice());
-                    }
-                }
-            }
-        });
+    /**
+     * Test of listOrders method, of class DaoService.
+     */
+    @Test
+    public void testListOrders() {
+        //GIVEN
+        //WHEN
+        underTest.listOrders();
+        //THEN
+        BDDMockito.verify(daoManager).listOrders();
+    }
+
+    /**
+     * Test of listOrdersByRetailer method, of class DaoService.
+     */
+    @Test
+    public void testListOrdersByRetailer() {
+        //GIVEN
+        //WHEN
+        underTest.listOrdersByRetailer("KÁEFTÉ");
+        //THEN
+        BDDMockito.verify(daoManager).listOrdersByRetailer("KÁEFTÉ");
+    }
+
+    /**
+     * Test of listProducts method, of class DaoService.
+     */
+    @Test
+    public void testListProducts() {
+        //GIVEN
+        //WHEN
+        underTest.listProducts();
+        //THEN
+        BDDMockito.verify(daoManager).listProducts();
+    }
+
+    /**
+     * Test of listRetailers method, of class DaoService.
+     */
+    @Test
+    public void testListRetailers() {
+       //GIVEN
+        //WHEN
+        underTest.listRetailers();
+        //THEN
+        BDDMockito.verify(daoManager).listRetailers();
+    }
+
+    /**
+     * Test of findProduct method, of class DaoService.
+     */
+    @Test
+    public void testFindProduct() {
+        //GIVEN
+        BDDMockito.given(daoManager.findProduct(BDDMockito.anyString())).willReturn(product1);
+        //WHEN
+        underTest.findProduct(product1.getProductName());
+        //THEN
+        BDDMockito.verify(daoManager).findProduct(product1.getProductName());
+    }
+
+    /**
+     * Test of modifyOrderStatus method, of class DaoService.
+     */
+    @Test
+    public void testModifyOrderStatus() {
+        //GIVEN
+        BDDMockito.given(daoManager.findOrder(BDDMockito.anyLong())).willReturn(order1);
+        //WHEN
+        underTest.modifyOrderStatus(0, OrderStatus.UNDER_DELIVERY);
+        //THEN
+        BDDMockito.verify(daoManager).updateOrder(order1);
+    }
+
+    /**
+     * Test of modifyProduct method, of class DaoService.
+     */
+    @Test
+    public void testModifyProduct() {
+        //GIVEN
+        BDDMockito.given(daoManager.findProduct(BDDMockito.any())).willReturn(product1);
+        //WHEN
+        underTest.modifyProduct("asd", BigDecimal.ONE, 10);
+        //THEN
+        BDDMockito.verify(daoManager).updateProduct(product1);
+    }
+
+    /**
+     * Test of modifyProductQuantity method, of class DaoService.
+     */
+    @Test
+    public void testModifyProductQuantity() {
+        //GIVEN
+        BDDMockito.given(daoManager.findProduct(BDDMockito.any())).willReturn(product1);
+        //WHEN
+        underTest.modifyProductQuantity("asds", 12);
+        //THEN
+        BDDMockito.verify(daoManager).updateProduct(product1);
+    }
+
+    /**
+     * Test of modifyRetailer method, of class DaoService.
+     */
+    @Test
+    public void testModifyRetailer() {
+         //GIVEN
+        BDDMockito.given(daoManager.findRetailer(BDDMockito.any())).willReturn(retailer2);
+        //WHEN
+        underTest.modifyRetailer("asd", "asdafd", BigDecimal.ONE, "4684684");
+        //THEN
+        BDDMockito.verify(daoManager).updateRetailer(retailer2);
     }
 }
