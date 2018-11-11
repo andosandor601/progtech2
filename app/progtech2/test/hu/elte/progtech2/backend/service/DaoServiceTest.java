@@ -6,7 +6,6 @@
 package hu.elte.progtech2.backend.service;
 
 import hu.elte.progtech2.backend.dao.DaoManager;
-import hu.elte.progtech2.backend.service.DaoService;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,10 +23,8 @@ import hu.elte.progtech2.backend.entities.Product;
 import hu.elte.progtech2.backend.entities.Retailer;
 import hu.elte.progtech2.backend.enums.OrderStatus;
 import hu.elte.progtech2.backend.service.exceptions.ServiceException;
-import org.mockito.ArgumentMatchers;
 import org.mockito.BDDMockito;
 import org.mockito.Mock;
-import static org.mockito.Mockito.times;
 import org.mockito.MockitoAnnotations;
 import org.mockito.internal.util.reflection.FieldSetter;
 
@@ -48,9 +45,11 @@ public class DaoServiceTest {
 
     private static OrderLine orderLine1 = new OrderLine();
     private static OrderLine orderLine2 = new OrderLine();
+    private static OrderLine orderLine3 = new OrderLine();
     private static Product product1 = new Product();
     private static Product product2 = new Product();
     private static Order order1 = new Order();
+    private static Order order2 = new Order();
     private static Retailer retailer1 = new Retailer();
     private static Retailer retailer2 = new Retailer();
 
@@ -83,6 +82,8 @@ public class DaoServiceTest {
 
     private static void initOrders() {
         order1.setStatus(OrderStatus.COMPLETED);
+        order2.setStatus(OrderStatus.UNDER_DELIVERY);
+        order2.setOrderPrice(BigDecimal.valueOf(20));
     }
 
     private static void initOrderLines() {
@@ -91,6 +92,9 @@ public class DaoServiceTest {
         orderLine1.setOrderLineId(1);
         orderLine2.setPrice(new BigDecimal(101));
         orderLine2.setQuantity(15);
+        orderLine3.setPrice(BigDecimal.TEN);
+        orderLine3.setQuantity(15);
+        orderLine3.setOrderLineId(1);
     }
 
     /**
@@ -192,32 +196,37 @@ public class DaoServiceTest {
      * A DaoService osztály deleteOrder metódusának tesztelése.
      */
     @Test
-    public void testDeleteOrder() throws ServiceException {
+    public void testDeleteCompletedOrder() throws ServiceException {
         //GIVEN
         List<OrderLine> orderLines = new ArrayList<>();
-        orderLines.add(orderLine1);
-        BDDMockito.given(daoManager.findOrderLinesByOrderId(BDDMockito.anyInt())).willReturn(orderLines);
+        orderLines.add(orderLine3);
+        BDDMockito.given(daoManager.findOrderLinesByOrderId(BDDMockito.anyLong())).willReturn(orderLines);
+        BDDMockito.given(daoManager.findOrderLine(BDDMockito.anyLong())).willReturn(orderLine3);
+        BDDMockito.given(daoManager.findOrder(BDDMockito.anyLong())).willReturn(order1);
         //WHEN
         underTest.deleteOrder(1);
         //THEN
         BDDMockito.verify(daoManager).deleteOrder(1);
+        BDDMockito.verify(daoManager).deleteOrderLine(BDDMockito.anyLong());
     }
 
     /**
      * A DaoService osztály deleteOrderLine metódusának tesztelése.
      */
     @Test
-    public void testDeleteOrderLine() throws ServiceException {
+    public void testDeleteOrderLineWithNotCompletedOrder() throws ServiceException {
         //GIVEN
         List<OrderLine> orderLines = new ArrayList<>();
         orderLines.add(orderLine1);
         BDDMockito.given(daoManager.findOrderLine(BDDMockito.anyLong())).willReturn(orderLine1);
-        BDDMockito.given(daoManager.findOrder(BDDMockito.anyLong())).willReturn(order1);
+        BDDMockito.given(daoManager.findOrder(BDDMockito.anyLong())).willReturn(order2);
         BDDMockito.given(daoManager.findProduct(BDDMockito.any())).willReturn(product1);
         //WHEN
         underTest.deleteOrderLine(orderLine1.getOrderLineId());
         //THEN
         BDDMockito.verify(daoManager).deleteOrderLine(orderLine1.getOrderLineId());
+        assertEquals(BigDecimal.ZERO, order2.getOrderPrice());
+        assertEquals(25, product1.getStock());
     }
 
     /**
@@ -361,7 +370,7 @@ public class DaoServiceTest {
         //GIVEN
         BDDMockito.given(daoManager.findOrder(BDDMockito.anyLong())).willReturn(order1);
         //WHEN
-        underTest.modifyOrderStatus(0, OrderStatus.UNDER_DELIVERY);
+        underTest.modifyOrderStatus(0, OrderStatus.COMPLETED);
         //THEN
         BDDMockito.verify(daoManager).updateOrder(order1);
     }
