@@ -38,7 +38,7 @@ public class DaoServiceTest {
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
-    private DaoService underTest = new DaoService();
+    private DaoService underTest;
 
     @Mock
     private DaoManager daoManager;
@@ -120,7 +120,7 @@ public class DaoServiceTest {
         /*
         Beállítjuk, hogy a mock object-et használja a tesztelt osztályunk
          */
-        FieldSetter.setField(underTest, underTest.getClass().getDeclaredField("dm"), daoManager);
+        underTest = new DaoService(daoManager);
     }
 
     /**

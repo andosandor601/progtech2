@@ -5,6 +5,7 @@
  */
 package hu.elte.progtech2.frontend;
 
+import hu.elte.progtech2.backend.dao.DaoManager;
 import java.math.BigDecimal;
 import java.util.List;
 import javax.swing.JOptionPane;
@@ -33,7 +34,7 @@ import hu.elte.progtech2.backend.service.Service;
 public final class GuiManager {
 
     private static DashboardWindow screen;
-    private static final Service service = new DaoService();
+    private static final Service service = new DaoService(new DaoManager());
 
     private GuiManager() {
     }
